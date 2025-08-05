@@ -1,67 +1,185 @@
 {
-  "name": "Certi-Land RESONTINEX Agent Flow",
+  "name": "Certi-Land RESONTINEX Agent Flow v1.5 - Self-Validating MWE",
   "nodes": [
     {
       "parameters": {},
-      "name": "Trigger",
+      "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300],
-      "description": "Manual trigger for testing - replace with webhook for production"
+      "position": [
+        200,
+        300
+      ],
+      "id": "trigger-node"
     },
     {
       "parameters": {
-        "functionCode": "// Extract and validate incoming parcel data\nconst parcelData = items[0]?.json || {};\n\n// For manual trigger testing, provide sample data\nif (Object.keys(parcelData).length === 0) {\n  return [{\n    json: {\n      parcelId: 'DEMO-001',\n      county: 'Pittsburg',\n      size: 2.5,\n      soilReport: 'Suitable',\n      legalIssues: false,\n      timestamp: new Date().toISOString(),\n      source: 'manual_test'\n    }\n  }];\n}\n\nif (!parcelData.parcelId) {\n  return [{ json: { error: 'Missing parcelId', status: 'validation_failed' } }];\n}\n\n// Return structured metadata (replace with actual parsing logic)\nreturn [{\n  json: {\n    parcelId: parcelData.parcelId || 'UNKNOWN',\n    county: parcelData.county || 'UNKNOWN',\n    size: parcelData.size || 0,\n    soilReport: parcelData.soilReport || 'Pending',\n    legalIssues: parcelData.legalIssues || false,\n    timestamp: new Date().toISOString()\n  }\n}];"
+        "values": {
+          "string": [
+            {
+              "name": "parcelId",
+              "value": "DEMO-001"
+            },
+            {
+              "name": "county",
+              "value": "Pittsburg"
+            },
+            {
+              "name": "soilReport",
+              "value": "Suitable"
+            }
+          ],
+          "number": [
+            {
+              "name": "size",
+              "value": 2.5
+            },
+            {
+              "name": "trustScore",
+              "value": 85
+            }
+          ],
+          "boolean": [
+            {
+              "name": "legalIssues",
+              "value": false
+            }
+          ]
+        }
       },
       "name": "Parse Metadata",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 2,
-      "position": [400, 300],
-      "description": "Dynamic parcel metadata parsing with validation"
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        400,
+        300
+      ],
+      "id": "parse-node"
     },
     {
       "parameters": {
-        "functionCode": "// Entropy auditing with graceful degradation\nconst data = items[0].json;\nlet entropyFlags = [];\n\nif (data.soilReport === 'Unsuitable') {\n  entropyFlags.push('soil_risk');\n}\nif (data.legalIssues === true) {\n  entropyFlags.push('legal_risk');\n}\nif (!data.county || data.county === 'UNKNOWN') {\n  entropyFlags.push('location_ambiguity');\n}\n\nreturn [{\n  json: {\n    ...data,\n    entropyFlags,\n    entropyScore: entropyFlags.length,\n    auditPassed: entropyFlags.length === 0\n  }\n}];"
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"soilReport\"]}}",
+              "operation": "equal",
+              "value2": "Suitable"
+            }
+          ],
+          "boolean": [
+            {
+              "value1": "={{$json[\"legalIssues\"]}}",
+              "operation": "equal",
+              "value2": false
+            }
+          ]
+        }
       },
-      "name": "EntropyAuditor",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 2,
-      "position": [600, 300],
-      "description": "Check for input entropy – soil, legal, structural inconsistencies"
+      "name": "Entropy Auditor",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "id": "entropy-node"
     },
     {
       "parameters": {
-        "functionCode": "// Dynamic trust scoring based on entropy results\nconst data = items[0].json;\nlet trustScore = 100;\nlet riskFactors = [];\n\n// Deduct points for each entropy flag\ndata.entropyFlags.forEach(flag => {\n  switch(flag) {\n    case 'soil_risk': trustScore -= 30; riskFactors.push('Soil unsuitable'); break;\n    case 'legal_risk': trustScore -= 40; riskFactors.push('Legal complications'); break;\n    case 'location_ambiguity': trustScore -= 15; riskFactors.push('Location unclear'); break;\n  }\n});\n\nconst notes = riskFactors.length > 0 \n  ? `Risk factors: ${riskFactors.join(', ')}` \n  : 'All validations passed. Low risk profile.';\n\nreturn [{\n  json: {\n    ...data,\n    trustScore: Math.max(trustScore, 0),\n    riskFactors,\n    notes,\n    recommendation: trustScore >= 70 ? 'APPROVE' : 'REVIEW_REQUIRED'\n  }\n}];"
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "APPROVED"
+            },
+            {
+              "name": "notes",
+              "value": "All validations passed. Low risk profile."
+            }
+          ],
+          "number": [
+            {
+              "name": "finalTrustScore",
+              "value": "={{$json[\"trustScore\"]}}"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
       },
-      "name": "TrustManager",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 2,
-      "position": [800, 300],
-      "description": "Dynamic risk scoring and recommendation engine"
+      "name": "Trust Manager",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        800,
+        250
+      ],
+      "id": "trust-approved"
     },
     {
       "parameters": {
-        "functionCode": "// Compress insight for downstream consumption\nconst data = items[0].json;\nconst summary = {\n  parcelId: data.parcelId,\n  trustScore: data.trustScore,\n  recommendation: data.recommendation,\n  entropyCount: data.entropyScore,\n  notes: data.notes,\n  processedAt: data.timestamp\n};\n\nreturn [{ json: { collapsedSummary: summary, rawData: data } }];"
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "REVIEW_REQUIRED"
+            },
+            {
+              "name": "notes",
+              "value": "Risk factors detected. Manual review needed."
+            }
+          ],
+          "number": [
+            {
+              "name": "finalTrustScore",
+              "value": "={{ $json[\"trustScore\"] * 0.35 }}"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
       },
-      "name": "InsightCollapser",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 2,
-      "position": [1000, 300],
-      "description": "Compress multi-signal insight into structured output"
+      "name": "Trust Manager Risk",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        800,
+        350
+      ],
+      "id": "trust-risk"
     },
     {
       "parameters": {
-        "functionCode": "// Attach continuity metadata for downstream workflows\nconst processedData = items[0].json;\n\nreturn [{\n  json: {\n    ...processedData,\n    continuity: {\n      workflowId: 'certi-land-resontinex',\n      version: '1.2.0',\n      completedAt: new Date().toISOString(),\n      status: 'SUCCESS',\n      nextActions: processedData.collapsedSummary.recommendation === 'REVIEW_REQUIRED' \n        ? ['manual_review', 'stakeholder_notification'] \n        : ['auto_approve', 'documentation_update']\n    }\n  }\n}];"
+        "values": {
+          "string": [
+            {
+              "name": "summary",
+              "value": "= 'Parcel ' + $json[\"parcelId\"] + ': ' + $json[\"status\"] + ' (Score: ' + $json[\"finalTrustScore\"] + ')'"
+            },
+            {
+              "name": "processedAt",
+              "value": "={{ $now.toISOString() }}"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
       },
-      "name": "ContinuityEngine",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 2,
-      "position": [1200, 300],
-      "description": "Semantic continuity + downstream action planning"
+      "name": "Insight Collapser",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
+      ],
+      "id": "insight-node"
     }
   ],
   "connections": {
-    "Trigger": {
+    "Manual Trigger": {
       "main": [
         [
           {
@@ -76,40 +194,47 @@
       "main": [
         [
           {
-            "node": "EntropyAuditor",
+            "node": "Entropy Auditor",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "EntropyAuditor": {
+    "Entropy Auditor": {
       "main": [
         [
           {
-            "node": "TrustManager",
+            "node": "Trust Manager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Trust Manager Risk",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "TrustManager": {
+    "Trust Manager": {
       "main": [
         [
           {
-            "node": "InsightCollapser",
+            "node": "Insight Collapser",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "InsightCollapser": {
+    "Trust Manager Risk": {
       "main": [
         [
           {
-            "node": "ContinuityEngine",
+            "node": "Insight Collapser",
             "type": "main",
             "index": 0
           }
@@ -118,11 +243,10 @@
     }
   },
   "active": false,
-  "settings": {
-    "errorWorkflow": {
-      "active": true
-    },
-    "timezone": "America/Chicago"
+  "settings": {},
+  "errorWorkflow": {
+    "active": true
   },
-  "id": "certi-land-prod-v1.2"
+  "timezone": "America/Chicago",
+  "id": "certi-land-prod-v1.5"
 }
