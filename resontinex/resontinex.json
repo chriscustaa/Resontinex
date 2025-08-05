@@ -1,0 +1,73 @@
+{
+  "engine_name": "RESONTINEX",
+  "version": "1.2.0",
+  "description": "Self-governing cognitive signal engine for orchestrating intelligent workflows using thermodynamic principles, energy-aware compression, and trust-governed entropy control.",
+  "principles": {
+    "entropy_reduction": true,
+    "continuity_enforcement": true,
+    "trust_scoring": true,
+    "insight_compression": true,
+    "compute_cost_awareness": true
+  },
+  "modules": {
+    "ContinuityEngine": {
+      "enabled": true,
+      "state_persistence": "semantic_thread",
+      "recovery_protocol": "context_snapshot+thread_relink"
+    },
+    "TrustManager": {
+      "enabled": true,
+      "scoring_model": "alignment_score + inflation_delta",
+      "flags": ["misalignment", "signal inflation", "external override"]
+    },
+    "EntropyAuditor": {
+      "enabled": true,
+      "threshold": 0.72,
+      "measurement_strategy": "token_variance_delta",
+      "entropy_metric": "semantic_drift_score",
+      "detectors": ["repetition", "topic drift", "signal noise", "logical incoherence"],
+      "actions": ["warn", "collapse", "route_for_review"]
+    },
+    "InsightCollapser": {
+      "enabled": true,
+      "compression_strategy": "multi-hop to single-block",
+      "reuse_format": "abstract + justification + canonical_form",
+      "canonical_versioning": true,
+      "fallback_strategy": "defer to raw block on ambiguity"
+    }
+  },
+  "interfaces": {
+    "input": ["raw_prompt", "agent_output", "external_json"],
+    "output": ["scored_signal", "collapsed_insight", "continuity_thread", "risk_alert"]
+  },
+  "conflict_resolution_protocols": {
+    "type": "hierarchical + quorum-based",
+    "priority_order": ["EntropyAuditor", "TrustManager", "ContinuityEngine", "InsightCollapser"],
+    "strategy": "First responder flags → module quorum vote → deferred arbitration",
+    "override_behavior": "If TrustManager and EntropyAuditor conflict, flag is elevated and passed to GateKit (if installed) for meta-resolution",
+    "voting_power_map": {
+      "EntropyAuditor": 2,
+      "TrustManager": 2,
+      "ContinuityEngine": 1,
+      "InsightCollapser": 1
+    },
+    "arbitration_timeout": "150ms"
+  },
+  "thermodynamic_params": {
+    "energy_budget_per_signal": "auto_calculated",
+    "compute_cost_aware_compression": true,
+    "max_collapse_attempts": 3,
+    "collapse_latency_threshold_ms": 200,
+    "compression_backoff_strategy": "exponential_delay"
+  },
+  "runtime": {
+    "execution_mode": "modular",
+    "entropy_floor": 0.25,
+    "trust_floor": 0.60,
+    "logging": "structured_trace",
+    "integration": {
+      "n8n_compatible": true,
+      "llm_supported": ["gpt-4o", "claude-3.5", "grok", "gemini", "local_gguf"]
+    }
+  }
+}
