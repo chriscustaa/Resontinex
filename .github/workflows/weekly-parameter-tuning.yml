@@ -1,0 +1,325 @@
+name: Weekly Fusion Parameter Tuning
+
+on:
+  schedule:
+    # Run every Sunday at 02:00 UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      grid_size:
+        description: 'Grid search size (small, medium, large)'
+        required: false
+        default: 'small'
+        type: choice
+        options:
+          - small
+          - medium
+          - large
+      target_scenarios:
+        description: 'Specific scenarios to tune (comma-separated, leave empty for all)'
+        required: false
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  
+jobs:
+  parameter-tuning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyyaml
+          
+      - name: Verify system health before tuning
+        run: |
+          python scripts/circuit_breaker.py --health-check
+          if [ $? -ne 0 ]; then
+            echo "System health check failed, aborting parameter tuning"
+            exit 1
+          fi
+          
+      - name: Run drift detection check
+        run: |
+          python scripts/watch-drift.py --once
+          echo "Drift detection completed"
+          
+      - name: Create tuning branch
+        run: |
+          BRANCH_NAME="auto-tuning/$(date +%Y%m%d)"
+          git checkout -b "$BRANCH_NAME"
+          echo "TUNING_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
+          
+      - name: Run parameter tuning
+        run: |
+          GRID_SIZE="${{ github.event.inputs.grid_size || 'small' }}"
+          TARGET_SCENARIOS="${{ github.event.inputs.target_scenarios }}"
+          
+          TUNING_ARGS="--grid-size $GRID_SIZE"
+          
+          if [ -n "$TARGET_SCENARIOS" ]; then
+            IFS=',' read -ra SCENARIOS <<< "$TARGET_SCENARIOS"
+            for scenario in "${SCENARIOS[@]}"; do
+              TUNING_ARGS="$TUNING_ARGS --scenarios $(echo $scenario | xargs)"
+            done
+          fi
+          
+          echo "Running parameter tuning with args: $TUNING_ARGS"
+          python scripts/tune-overlay.py $TUNING_ARGS > tuning_output.log 2>&1
+          
+          # Check if tuning was successful
+          if [ $? -eq 0 ]; then
+            echo "TUNING_SUCCESS=true" >> $GITHUB_ENV
+          else
+            echo "TUNING_SUCCESS=false" >> $GITHUB_ENV
+            cat tuning_output.log
+            exit 1
+          fi
+          
+      - name: Validate tuning results
+        run: |
+          python -c "
+          import yaml
+          import json
+          from pathlib import Path
+          
+          # Load updated parameters
+          with open('configs/fusion/overlay_params.yaml', 'r') as f:
+              params = yaml.safe_load(f)
+              
+          # Check tuning history
+          history = params.get('tuning_history', {})
+          scenarios_updated = history.get('scenarios_updated', 0)
+          
+          print(f'Scenarios updated: {scenarios_updated}')
+          
+          if scenarios_updated == 0:
+              print('No parameters were updated - no changes to commit')
+              with open('tuning_summary.json', 'w') as f:
+                  json.dump({'scenarios_updated': 0, 'commit_required': False}, f)
+          else:
+              print(f'Parameters updated for {scenarios_updated} scenarios')
+              with open('tuning_summary.json', 'w') as f:
+                  json.dump({'scenarios_updated': scenarios_updated, 'commit_required': True}, f)
+          "
+          
+      - name: Check if commit is needed
+        id: check_commit
+        run: |
+          COMMIT_REQUIRED=$(python -c "import json; print(json.load(open('tuning_summary.json'))['commit_required'])")
+          echo "commit_required=$COMMIT_REQUIRED" >> $GITHUB_OUTPUT
+          
+      - name: Commit parameter updates
+        if: steps.check_commit.outputs.commit_required == 'True'
+        run: |
+          SCENARIOS_UPDATED=$(python -c "import json; print(json.load(open('tuning_summary.json'))['scenarios_updated'])")
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action - Parameter Tuning"
+          
+          git add configs/fusion/overlay_params.yaml
+          git add build/tuning/
+          
+          COMMIT_MSG="🔧 Auto-tune parameters: ${SCENARIOS_UPDATED} scenarios updated
+          
+          Automated parameter optimization completed:
+          - Grid size: ${{ github.event.inputs.grid_size || 'small' }}
+          - Scenarios updated: ${SCENARIOS_UPDATED}
+          - Tuning timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          
+          Generated by: .github/workflows/weekly-parameter-tuning.yml"
+          
+          git commit -m "$COMMIT_MSG"
+          
+      - name: Run post-tuning validation
+        if: steps.check_commit.outputs.commit_required == 'True'
+        run: |
+          # Validate updated configuration
+          python -c "
+          import yaml
+          with open('configs/fusion/overlay_params.yaml', 'r') as f:
+              config = yaml.safe_load(f)
+              
+          # Basic validation
+          assert 'schema_version' in config
+          assert 'defaults' in config
+          assert 'overrides' in config
+          
+          print('Configuration validation passed')
+          "
+          
+          # Run quick evaluation with updated parameters
+          python scripts/evaluate-fusion.py \
+            --scenarios configs/fusion/eval_scenarios.yaml \
+            --iterations 1 \
+            --out build/validation/ \
+            > validation_output.log 2>&1
+            
+          echo "Post-tuning validation completed"
+          
+      - name: Create pull request
+        if: steps.check_commit.outputs.commit_required == 'True'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.TUNING_BRANCH }}
+          title: "🔧 Weekly Parameter Tuning Results"
+          body: |
+            ## Weekly Fusion Parameter Tuning Results
+            
+            **Automated parameter optimization completed successfully**
+            
+            ### Summary
+            - **Scenarios Updated**: $(python -c "import json; print(json.load(open('tuning_summary.json'))['scenarios_updated'])")
+            - **Grid Size**: ${{ github.event.inputs.grid_size || 'small' }}
+            - **Execution Time**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+            
+            ### Changes Made
+            - Updated `configs/fusion/overlay_params.yaml` with optimized parameters
+            - Generated tuning reports in `build/tuning/`
+            - Validated configuration and ran post-tuning tests
+            
+            ### Quality Gates
+            - [x] Configuration validation passed
+            - [x] Post-tuning evaluation completed
+            - [x] No system health issues detected
+            
+            ### Next Steps
+            1. Review parameter changes in the diff
+            2. Validate improvement metrics in tuning reports
+            3. Merge if improvements meet quality thresholds
+            4. Monitor system performance after deployment
+            
+            ---
+            *This PR was automatically generated by the weekly parameter tuning workflow.*
+            
+          labels: |
+            automation
+            parameter-tuning
+            fusion-optimization
+          assignees: |
+            # Add default reviewers here
+          draft: false
+          
+      - name: Upload tuning artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: parameter-tuning-results
+          path: |
+            build/tuning/
+            tuning_output.log
+            validation_output.log
+            tuning_summary.json
+          retention-days: 30
+          
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            Weekly parameter tuning failed
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            
+            Check the workflow run for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+        
+      - name: Update monitoring dashboard
+        if: steps.check_commit.outputs.commit_required == 'True'
+        run: |
+          echo "Updating parameter tuning metrics..."
+          python -c "
+          import json
+          from datetime import datetime, timezone
+          
+          # Create metrics update
+          metrics = {
+              'last_tuning_run': datetime.now(timezone.utc).isoformat(),
+              'scenarios_updated': json.load(open('tuning_summary.json'))['scenarios_updated'],
+              'tuning_method': 'automated_weekly',
+              'grid_size': '${{ github.event.inputs.grid_size || 'small' }}',
+              'success': True
+          }
+          
+          with open('build/metrics/parameter_tuning_metrics.json', 'w') as f:
+              json.dump(metrics, f, indent=2)
+              
+          print('Metrics updated successfully')
+          "
+          
+      - name: Cleanup temporary files
+        if: always()
+        run: |
+          rm -f tuning_summary.json
+          echo "Cleanup completed"
+
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          
+      - name: System health verification
+        run: |
+          echo "Verifying system health before parameter tuning..."
+          
+          # Check configuration files
+          python -c "
+          import yaml
+          from pathlib import Path
+          
+          required_files = [
+              'configs/fusion/overlay_params.yaml',
+              'configs/fusion/eval_scenarios.yaml',
+              'configs/fusion/slo.yaml'
+          ]
+          
+          for file_path in required_files:
+              if not Path(file_path).exists():
+                  raise FileNotFoundError(f'Required file not found: {file_path}')
+              
+              with open(file_path, 'r') as f:
+                  config = yaml.safe_load(f)
+                  print(f'✓ {file_path} loaded successfully')
+          
+          print('All required configuration files are valid')
+          "
+          
+          echo "System health check completed successfully"

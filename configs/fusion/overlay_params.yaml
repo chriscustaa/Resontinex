@@ -1,0 +1,147 @@
+schema_version: "1.0.0"
+last_updated: "2025-08-09T11:46:00.000Z"
+tuning_framework: "scenario_aware_optimization"
+
+defaults:
+  temperature: 0.25
+  top_p: 0.8
+  presence_penalty: 0.0
+  frequency_penalty: 0.30
+  max_tokens: 2048
+  response_format: "text"
+
+overrides:
+  refund_processing_duplicate:
+    temperature: 0.22
+    top_p: 0.75
+    presence_penalty: 0.00
+    frequency_penalty: 0.40
+    reasoning: "Financial operations require high precision and low variability"
+    
+  lot_boundary_dispute_resolution:
+    temperature: 0.28
+    top_p: 0.85
+    presence_penalty: 0.05
+    frequency_penalty: 0.25
+    reasoning: "Legal scenarios benefit from creative exploration of alternatives"
+    
+  webhook_endpoint_failure_cascade:
+    temperature: 0.20
+    top_p: 0.70
+    presence_penalty: 0.00
+    frequency_penalty: 0.35
+    reasoning: "System integration requires deterministic technical solutions"
+    
+  regulatory_compliance_audit_prep:
+    temperature: 0.24
+    top_p: 0.78
+    presence_penalty: 0.10
+    frequency_penalty: 0.32
+    reasoning: "Compliance requires structured approach with comprehensive coverage"
+    
+  subscription_downgrade_retention:
+    temperature: 0.32
+    top_p: 0.88
+    presence_penalty: 0.15
+    frequency_penalty: 0.20
+    reasoning: "Customer success scenarios benefit from creative retention strategies"
+    
+  api_rate_limit_optimization:
+    temperature: 0.21
+    top_p: 0.72
+    presence_penalty: 0.00
+    frequency_penalty: 0.38
+    reasoning: "Infrastructure optimization requires precise technical parameters"
+    
+  data_migration_rollback_scenario:
+    temperature: 0.19
+    top_p: 0.68
+    presence_penalty: 0.00
+    frequency_penalty: 0.42
+    reasoning: "Database operations require maximum precision and error prevention"
+    
+  security_incident_containment:
+    temperature: 0.18
+    top_p: 0.65
+    presence_penalty: 0.00
+    frequency_penalty: 0.45
+    reasoning: "Security incidents demand systematic, reproducible responses"
+    
+  vendor_contract_negotiation_renewal:
+    temperature: 0.30
+    top_p: 0.82
+    presence_penalty: 0.12
+    frequency_penalty: 0.28
+    reasoning: "Negotiations benefit from strategic flexibility and varied approaches"
+    
+  performance_monitoring_alert_fatigue:
+    temperature: 0.23
+    top_p: 0.76
+    presence_penalty: 0.00
+    frequency_penalty: 0.33
+    reasoning: "Operations management requires balanced precision and adaptability"
+
+# Category-based defaults for new scenarios
+category_defaults:
+  financial_operations:
+    temperature: 0.22
+    presence_penalty: 0.00
+    frequency_penalty: 0.38
+    
+  security_operations:
+    temperature: 0.19
+    presence_penalty: 0.00
+    frequency_penalty: 0.43
+    
+  system_integration:
+    temperature: 0.21
+    presence_penalty: 0.00
+    frequency_penalty: 0.36
+    
+  compliance_management:
+    temperature: 0.24
+    presence_penalty: 0.08
+    frequency_penalty: 0.31
+    
+  customer_success:
+    temperature: 0.31
+    presence_penalty: 0.14
+    frequency_penalty: 0.22
+
+# Tuning constraints and bounds
+constraints:
+  temperature:
+    min: 0.15
+    max: 0.40
+    step: 0.01
+    
+  top_p:
+    min: 0.60
+    max: 0.95
+    step: 0.05
+    
+  presence_penalty:
+    min: 0.00
+    max: 0.20
+    step: 0.01
+    
+  frequency_penalty:
+    min: 0.15
+    max: 0.50
+    step: 0.01
+
+# Performance tracking
+tuning_history:
+  last_optimization: "2025-08-09T11:46:00.000Z"
+  iterations_completed: 0
+  best_performing_params:
+    overall_improvement: 0.0
+    scenario_count: 0
+    parameters: {}
+
+# Quality gates for parameter acceptance
+quality_gates:
+  minimum_improvement_threshold: 0.05
+  minimum_scenarios_tested: 3
+  maximum_performance_degradation: -0.02
+  statistical_significance_threshold: 0.70
