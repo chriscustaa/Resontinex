@@ -1,0 +1,336 @@
+# RESONTINEX Fusion Effectiveness Check (FEC) Scenarios
+# Production-representative tasks for baseline vs overlay evaluation
+# Generated: 2025-08-09T11:19:00.000Z
+
+schema_version: "1.0.0"
+evaluation_framework: "fusion_effectiveness_check"
+target_metrics:
+  specificity_improvement: 0.12
+  operationality_improvement: 0.10
+  rationale_density_minimum: 0.75
+
+scenarios:
+  - id: "refund_processing_duplicate"
+    category: "financial_operations"
+    complexity: 0.7
+    description: "Customer initiated refund request for duplicate charge on subscription renewal"
+    context: |
+      Customer contacted support claiming they were charged twice for their annual subscription on 2025-08-01.
+      Account shows: 
+      - Original charge: $299.99 on 2025-08-01 10:15 UTC
+      - Duplicate charge: $299.99 on 2025-08-01 10:16 UTC
+      - Same payment method (card ending 4521)
+      - Customer has been subscriber for 18 months
+      - No previous refund requests
+    prompt: "Analyze this refund request and provide specific processing recommendations with operational steps."
+    expected_capabilities:
+      - trust_scoring: 0.85
+      - entropy_control: 0.75
+      - insight_compression: 0.80
+    evaluation_weight: 1.2
+
+  - id: "lot_boundary_dispute_resolution"
+    category: "property_management"
+    complexity: 0.8
+    description: "Property boundary dispute requiring survey data reconciliation and legal compliance review"
+    context: |
+      Property dispute between adjacent lot owners over 2.3-foot boundary discrepancy.
+      Survey data shows:
+      - Original 1987 survey: Property line at coordinates (125.45, 89.12)
+      - Recent 2024 survey: Property line at coordinates (123.12, 89.12) 
+      - Fence installed in 2019 at original survey line
+      - County records show easement granted in 2001
+      - Property taxes paid based on original boundaries
+    prompt: "Determine resolution approach considering legal, survey, and administrative factors with specific next steps."
+    expected_capabilities:
+      - continuity_threading: 0.90
+      - trust_scoring: 0.88
+      - compute_cost_awareness: 0.70
+    evaluation_weight: 1.5
+
+  - id: "webhook_endpoint_failure_cascade"
+    category: "system_integration"
+    complexity: 0.6
+    description: "Multiple webhook delivery failures causing downstream process interruption"
+    context: |
+      Webhook delivery system experiencing cascading failures:
+      - Primary endpoint (api.client.com/webhooks) returning 503 errors since 08:45 UTC
+      - 847 failed delivery attempts queued
+      - Backup endpoint (backup.client.com/events) responding normally
+      - Client SLA requires 99.5% delivery success rate
+      - Current month delivery rate: 98.2%
+      - Retry policy: exponential backoff, max 5 attempts
+    prompt: "Diagnose the webhook failure cascade and recommend immediate remediation with specific technical actions."
+    expected_capabilities:
+      - entropy_control: 0.82
+      - insight_compression: 0.75
+      - continuity_threading: 0.70
+    evaluation_weight: 1.0
+
+  - id: "regulatory_compliance_audit_prep"
+    category: "compliance_management"
+    complexity: 0.9
+    description: "GDPR compliance audit preparation requiring data mapping and retention policy review"
+    context: |
+      Upcoming GDPR compliance audit scheduled for 2025-08-15:
+      - 12,847 active user accounts with EU data subjects
+      - Data retention policies implemented in 2022
+      - 23 data processing activities identified
+      - 4 third-party processors involved (AWS, SendGrid, Analytics Co, Support Platform)
+      - 2 data breach incidents in past 24 months (both resolved within 72 hours)
+      - Privacy policy last updated 2024-03-12
+      - User consent management system deployed 2023-11-01
+    prompt: "Create comprehensive audit preparation checklist with specific deliverables and timeline for GDPR compliance review."
+    expected_capabilities:
+      - trust_scoring: 0.92
+      - continuity_threading: 0.85
+      - insight_compression: 0.88
+    evaluation_weight: 1.8
+
+  - id: "subscription_downgrade_retention"
+    category: "customer_success"
+    complexity: 0.5
+    description: "High-value customer requesting subscription downgrade with retention opportunity analysis"
+    context: |
+      Enterprise customer (Account ID: ENT-7439) requesting downgrade:
+      - Current plan: Enterprise ($2,400/year) since 2022-06-01
+      - Usage metrics: 78% of seat allocation, 45% of storage, 92% of API calls
+      - Requested plan: Professional ($600/year)
+      - Reason stated: "Budget constraints due to department restructuring"
+      - Contract renewal date: 2025-11-30
+      - Customer success score: 8.2/10
+      - Support ticket volume: Low (3 tickets in past 12 months)
+    prompt: "Analyze downgrade request and develop retention strategy with specific value propositions and pricing options."
+    expected_capabilities:
+      - trust_scoring: 0.80
+      - insight_compression: 0.85
+      - compute_cost_awareness: 0.75
+    evaluation_weight: 1.3
+
+  - id: "api_rate_limit_optimization"
+    category: "infrastructure_management"
+    complexity: 0.7
+    description: "API rate limiting causing client integration failures requiring threshold adjustment analysis"
+    context: |
+      API rate limiting impacting client integrations:
+      - Current limit: 1,000 requests/hour per API key
+      - Client ABC hitting limits during peak hours (14:00-16:00 UTC)
+      - Failed requests in past 7 days: 2,847
+      - Client's business-critical integration processes halting
+      - Other clients average 340 requests/hour
+      - Server capacity: 85% during peak, 45% during off-peak
+      - Revenue impact: $12,400/month from Client ABC
+    prompt: "Evaluate API rate limit optimization options with specific implementation recommendations and risk assessment."
+    expected_capabilities:
+      - entropy_control: 0.78
+      - compute_cost_awareness: 0.85
+      - continuity_threading: 0.72
+    evaluation_weight: 1.1
+
+  - id: "data_migration_rollback_scenario"
+    category: "data_operations"
+    complexity: 0.8
+    description: "Database migration rollback required after performance degradation detected"
+    context: |
+      Database migration from PostgreSQL 13 to 15 completed 2025-08-08 22:00 UTC:
+      - Migration duration: 4.2 hours (planned: 3 hours)
+      - Post-migration performance issues detected:
+        * Query response times increased 340%
+        * Connection pool exhaustion occurring
+        * Read replica lag increased from 2s to 45s
+      - 127,000 active user sessions affected
+      - Rollback window: 8 hours from migration completion
+      - Current time: 2025-08-09 04:30 UTC
+      - Backup integrity verified pre-migration
+    prompt: "Determine rollback necessity and execution plan with specific technical steps and risk mitigation measures."
+    expected_capabilities:
+      - trust_scoring: 0.88
+      - entropy_control: 0.82
+      - insight_compression: 0.90
+    evaluation_weight: 1.6
+
+  - id: "security_incident_containment"
+    category: "security_operations"
+    complexity: 0.9
+    description: "Potential security breach detected requiring immediate containment and forensic analysis"
+    context: |
+      Security monitoring detected suspicious activity at 2025-08-09 09:15 UTC:
+      - Anomalous login patterns from IP range 185.220.*.* (Tor exit nodes)
+      - 47 failed login attempts across 12 admin accounts
+      - 3 successful logins to service accounts (non-admin)
+      - Unusual database queries executed on user_permissions table
+      - File modification detected in /var/log/auth.log
+      - No data exfiltration detected yet
+      - Similar pattern detected on 2025-08-07 (dismissed as false positive)
+    prompt: "Assess security incident severity and implement containment measures with specific forensic preservation steps."
+    expected_capabilities:
+      - trust_scoring: 0.95
+      - entropy_control: 0.85
+      - continuity_threading: 0.88
+    evaluation_weight: 2.0
+
+  - id: "vendor_contract_negotiation_renewal"
+    category: "procurement_management"
+    complexity: 0.6
+    description: "Critical vendor contract renewal with pricing increase requiring negotiation strategy"
+    context: |
+      Primary cloud storage vendor contract expiring 2025-09-30:
+      - Current cost: $18,400/month for 500TB storage + bandwidth
+      - Proposed renewal: $24,700/month (34% increase)
+      - Usage trending: 520TB current, 680TB projected by year-end
+      - Alternative vendors evaluated:
+        * Vendor B: $21,200/month (includes migration costs)
+        * Vendor C: $19,800/month (6-month commitment minimum)
+      - Migration timeline: 45-60 days
+      - Service criticality: Tier 1 (customer-facing)
+    prompt: "Develop vendor negotiation strategy with specific cost optimization approaches and risk assessment."
+    expected_capabilities:
+      - compute_cost_awareness: 0.90
+      - trust_scoring: 0.75
+      - insight_compression: 0.82
+    evaluation_weight: 1.2
+
+  - id: "performance_monitoring_alert_fatigue"
+    category: "operations_management"
+    complexity: 0.5
+    description: "Monitoring system generating excessive false positive alerts requiring threshold optimization"
+    context: |
+      Monitoring system alert volume analysis:
+      - Daily alerts: 847 (target: <50)
+      - False positive rate: 89%
+      - Critical alerts missed in past 30 days: 2
+      - Alert categories: CPU (45%), Memory (23%), Disk (18%), Network (14%)
+      - On-call engineer fatigue reported
+      - Response time degraded from 3.2 min to 12.7 min average
+      - Business hours vs off-hours alert ratio: 3:1
+    prompt: "Optimize monitoring alert thresholds to reduce false positives while maintaining critical event detection."
+    expected_capabilities:
+      - entropy_control: 0.80
+      - trust_scoring: 0.70
+      - compute_cost_awareness: 0.65
+    evaluation_weight: 0.9
+
+  - id: "customer_data_export_gdpr_request"
+    category: "privacy_compliance"
+    complexity: 0.7
+    description: "GDPR Article 20 data portability request requiring comprehensive data aggregation"
+    context: |
+      Customer data export request received 2025-08-07:
+      - Customer ID: USR-445821, EU resident (Germany)
+      - Account active since 2020-03-15
+      - Data sources: Primary DB, Analytics DB, File Storage, Backup Systems, Third-party CRM
+      - Estimated data volume: 2.3GB across 47 database tables
+      - Legal deadline: 30 days (2025-09-06)
+      - Previous export requests: None
+      - Active legal dispute: No
+      - Data includes: Personal info, transaction history, communication logs, file uploads
+    prompt: "Execute GDPR data export with comprehensive data aggregation plan and compliance verification steps."
+    expected_capabilities:
+      - continuity_threading: 0.85
+      - trust_scoring: 0.88
+      - insight_compression: 0.75
+    evaluation_weight: 1.4
+
+  - id: "infrastructure_capacity_planning"
+    category: "resource_management"  
+    complexity: 0.8
+    description: "Projected traffic spike requiring infrastructure scaling analysis and capacity planning"
+    context: |
+      Marketing campaign launching 2025-08-15 with projected traffic impact:
+      - Historical baseline: 12,400 daily active users
+      - Campaign projection: 340% traffic increase over 7-day period
+      - Current infrastructure: 8 application servers, 4 database replicas
+      - Peak capacity tested: 28,000 concurrent users (load test 2025-07-01)
+      - Auto-scaling configured: Min 4, Max 12 instances
+      - Database connection limit: 500 concurrent connections
+      - CDN capacity: 1TB/day (current usage: 180GB/day)
+      - Budget approval required for >$5,000 additional monthly spend
+    prompt: "Design infrastructure scaling plan with specific resource requirements and cost optimization strategies."
+    expected_capabilities:
+      - compute_cost_awareness: 0.88
+      - entropy_control: 0.75
+      - continuity_threading: 0.80
+    evaluation_weight: 1.5
+
+  - id: "third_party_integration_deprecation"
+    category: "integration_management"
+    complexity: 0.6
+    description: "Critical third-party API deprecation requiring integration migration with minimal service disruption"
+    context: |
+      Payment processor API v1 deprecation notice received:
+      - Deprecation date: 2025-10-31
+      - Current integration: API v1 (implemented 2022-01-15)
+      - Migration target: API v3 (v2 also deprecated)
+      - Integration complexity: OAuth 2.0 flow, webhook validation, refund processing
+      - Transaction volume: ~2,400 transactions/month ($340,000 value)
+      - Development resources: 1 senior developer, 1 QA engineer available
+      - Testing requirements: Sandbox environment, PCI compliance validation
+      - Rollback plan required for production deployment
+    prompt: "Plan third-party API migration with specific timeline, testing protocols, and risk mitigation measures."
+    expected_capabilities:
+      - continuity_threading: 0.85
+      - trust_scoring: 0.80
+      - compute_cost_awareness: 0.70
+    evaluation_weight: 1.3
+
+  - id: "user_account_compromise_investigation"
+    category: "security_investigation"
+    complexity: 0.8
+    description: "User account showing signs of compromise requiring forensic analysis and remediation"
+    context: |
+      Account security investigation triggered 2025-08-09 08:30 UTC:
+      - Account: Premium user (ID: PRM-8821), active since 2021-11-03
+      - Suspicious indicators:
+        * Login from 3 different countries within 2-hour window
+        * Password changed at 2025-08-09 07:45 UTC (user denies action)
+        * 23 file downloads in 15 minutes (typical: 2-3 per session)
+        * API key regenerated (user unaware)
+      - Account value: $4,800 annual subscription
+      - Sensitive data access: Customer contact lists, financial reports
+      - No MFA enabled (optional for this account tier)
+    prompt: "Investigate account compromise indicators and implement security remediation with user communication plan."
+    expected_capabilities:
+      - trust_scoring: 0.92
+      - entropy_control: 0.82
+      - insight_compression: 0.85
+    evaluation_weight: 1.7
+
+  - id: "service_level_agreement_breach"
+    category: "service_management"
+    complexity: 0.7
+    description: "SLA breach requiring customer remediation and process improvement analysis"
+    context: |
+      SLA breach incident 2025-08-08:
+      - Customer: Enterprise tier (SLA: 99.9% uptime, <2s response time)
+      - Incident duration: 3.7 hours (14:15-17:52 UTC)
+      - Impact: Complete service unavailability for customer's region
+      - Root cause: Database failover mechanism failure during maintenance
+      - SLA breach calculation: Monthly uptime 99.12% (target: 99.9%)
+      - Customer revenue impact: ~$45,000 (customer claims)
+      - SLA penalty clause: 10% monthly fee credit for <99.9% uptime
+      - Previous breaches this year: 1 (minor, resolved with customer satisfaction)
+    prompt: "Address SLA breach with customer remediation plan and systematic process improvements to prevent recurrence."
+    expected_capabilities:
+      - trust_scoring: 0.85
+      - continuity_threading: 0.88
+      - insight_compression: 0.80
+    evaluation_weight: 1.4
+
+evaluation_settings:
+  baseline_model_priority: "local_gguf"
+  overlay_fusion_enabled: true
+  measurement_iterations: 3
+  timeout_per_scenario_seconds: 120
+  scoring_methodology: "prompt_3_evaluator"
+  output_format: ["csv", "json"]
+  
+scoring_weights:
+  specificity: 0.35
+  rationale_density: 0.30
+  operationality: 0.35
+
+quality_gates:
+  minimum_specificity: 0.60
+  minimum_rationale_density: 0.65
+  minimum_operationality: 0.55
+  maximum_entropy_drift: 0.15

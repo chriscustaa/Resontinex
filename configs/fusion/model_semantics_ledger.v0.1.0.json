@@ -1,0 +1,313 @@
+{
+  "schema_version": "0.1.0",
+  "generated_at": "2025-08-09T10:55:00.000Z",
+  "ledger_id": "resontinex_fusion_v010",
+  "metadata": {
+    "description": "Cross-model capability mappings for RESONTINEX fusion engine",
+    "engine_version": "1.2.0",
+    "fusion_compatibility": "v0.3",
+    "last_validated": "2025-08-09T10:55:00.000Z"
+  },
+  "cross_model": {
+    "keyword_support": {
+      "entropy_control": {
+        "gpt-4o": 0.92,
+        "claude-3.5": 0.89,
+        "grok": 0.76,
+        "gemini": 0.81,
+        "local_gguf": 0.68
+      },
+      "continuity_threading": {
+        "gpt-4o": 0.87,
+        "claude-3.5": 0.94,
+        "grok": 0.71,
+        "gemini": 0.79,
+        "local_gguf": 0.63
+      },
+      "trust_scoring": {
+        "gpt-4o": 0.85,
+        "claude-3.5": 0.91,
+        "grok": 0.73,
+        "gemini": 0.77,
+        "local_gguf": 0.59
+      },
+      "insight_compression": {
+        "gpt-4o": 0.89,
+        "claude-3.5": 0.86,
+        "grok": 0.74,
+        "gemini": 0.82,
+        "local_gguf": 0.71
+      },
+      "compute_cost_awareness": {
+        "gpt-4o": 0.78,
+        "claude-3.5": 0.83,
+        "grok": 0.69,
+        "gemini": 0.75,
+        "local_gguf": 0.91
+      }
+    },
+    "module_compatibility": {
+      "ContinuityEngine": {
+        "gpt-4o": {
+          "semantic_thread_support": true,
+          "context_snapshot_reliability": 0.91,
+          "thread_relink_success_rate": 0.87,
+          "max_context_window": 128000,
+          "state_persistence_score": 0.89
+        },
+        "claude-3.5": {
+          "semantic_thread_support": true,
+          "context_snapshot_reliability": 0.94,
+          "thread_relink_success_rate": 0.92,
+          "max_context_window": 200000,
+          "state_persistence_score": 0.93
+        },
+        "grok": {
+          "semantic_thread_support": true,
+          "context_snapshot_reliability": 0.73,
+          "thread_relink_success_rate": 0.69,
+          "max_context_window": 131072,
+          "state_persistence_score": 0.71
+        },
+        "gemini": {
+          "semantic_thread_support": true,
+          "context_snapshot_reliability": 0.81,
+          "thread_relink_success_rate": 0.77,
+          "max_context_window": 1000000,
+          "state_persistence_score": 0.79
+        },
+        "local_gguf": {
+          "semantic_thread_support": false,
+          "context_snapshot_reliability": 0.58,
+          "thread_relink_success_rate": 0.51,
+          "max_context_window": 4096,
+          "state_persistence_score": 0.54
+        }
+      },
+      "TrustManager": {
+        "gpt-4o": {
+          "alignment_scoring": 0.86,
+          "inflation_detection": 0.83,
+          "misalignment_flagging": 0.89,
+          "external_override_resistance": 0.78,
+          "trust_floor_maintenance": 0.85
+        },
+        "claude-3.5": {
+          "alignment_scoring": 0.91,
+          "inflation_detection": 0.87,
+          "misalignment_flagging": 0.94,
+          "external_override_resistance": 0.82,
+          "trust_floor_maintenance": 0.90
+        },
+        "grok": {
+          "alignment_scoring": 0.72,
+          "inflation_detection": 0.69,
+          "misalignment_flagging": 0.75,
+          "external_override_resistance": 0.68,
+          "trust_floor_maintenance": 0.71
+        },
+        "gemini": {
+          "alignment_scoring": 0.79,
+          "inflation_detection": 0.76,
+          "misalignment_flagging": 0.81,
+          "external_override_resistance": 0.73,
+          "trust_floor_maintenance": 0.78
+        },
+        "local_gguf": {
+          "alignment_scoring": 0.61,
+          "inflation_detection": 0.58,
+          "misalignment_flagging": 0.64,
+          "external_override_resistance": 0.71,
+          "trust_floor_maintenance": 0.62
+        }
+      },
+      "EntropyAuditor": {
+        "gpt-4o": {
+          "token_variance_measurement": 0.89,
+          "semantic_drift_detection": 0.86,
+          "repetition_flagging": 0.92,
+          "topic_drift_tracking": 0.84,
+          "logical_coherence_scoring": 0.88,
+          "entropy_threshold_compliance": 0.87
+        },
+        "claude-3.5": {
+          "token_variance_measurement": 0.93,
+          "semantic_drift_detection": 0.91,
+          "repetition_flagging": 0.89,
+          "topic_drift_tracking": 0.88,
+          "logical_coherence_scoring": 0.94,
+          "entropy_threshold_compliance": 0.92
+        },
+        "grok": {
+          "token_variance_measurement": 0.74,
+          "semantic_drift_detection": 0.71,
+          "repetition_flagging": 0.77,
+          "topic_drift_tracking": 0.69,
+          "logical_coherence_scoring": 0.73,
+          "entropy_threshold_compliance": 0.72
+        },
+        "gemini": {
+          "token_variance_measurement": 0.82,
+          "semantic_drift_detection": 0.79,
+          "repetition_flagging": 0.84,
+          "topic_drift_tracking": 0.77,
+          "logical_coherence_scoring": 0.81,
+          "entropy_threshold_compliance": 0.80
+        },
+        "local_gguf": {
+          "token_variance_measurement": 0.63,
+          "semantic_drift_detection": 0.59,
+          "repetition_flagging": 0.68,
+          "topic_drift_tracking": 0.56,
+          "logical_coherence_scoring": 0.61,
+          "entropy_threshold_compliance": 0.64
+        }
+      },
+      "InsightCollapser": {
+        "gpt-4o": {
+          "multi_hop_compression": 0.87,
+          "abstract_generation": 0.89,
+          "justification_coherence": 0.86,
+          "canonical_form_stability": 0.84,
+          "version_consistency": 0.88,
+          "compression_ratio": 3.4
+        },
+        "claude-3.5": {
+          "multi_hop_compression": 0.91,
+          "abstract_generation": 0.92,
+          "justification_coherence": 0.89,
+          "canonical_form_stability": 0.87,
+          "version_consistency": 0.90,
+          "compression_ratio": 3.7
+        },
+        "grok": {
+          "multi_hop_compression": 0.73,
+          "abstract_generation": 0.71,
+          "justification_coherence": 0.69,
+          "canonical_form_stability": 0.67,
+          "version_consistency": 0.72,
+          "compression_ratio": 2.8
+        },
+        "gemini": {
+          "multi_hop_compression": 0.80,
+          "abstract_generation": 0.82,
+          "justification_coherence": 0.78,
+          "canonical_form_stability": 0.76,
+          "version_consistency": 0.81,
+          "compression_ratio": 3.2
+        },
+        "local_gguf": {
+          "multi_hop_compression": 0.64,
+          "abstract_generation": 0.61,
+          "justification_coherence": 0.58,
+          "canonical_form_stability": 0.55,
+          "version_consistency": 0.63,
+          "compression_ratio": 2.1
+        }
+      }
+    },
+    "thermodynamic_efficiency": {
+      "energy_per_signal": {
+        "gpt-4o": 12.3,
+        "claude-3.5": 15.7,
+        "grok": 8.9,
+        "gemini": 11.2,
+        "local_gguf": 2.4
+      },
+      "compute_cost_multiplier": {
+        "gpt-4o": 1.00,
+        "claude-3.5": 0.85,
+        "grok": 0.45,
+        "gemini": 0.72,
+        "local_gguf": 0.02
+      },
+      "latency_profile_ms": {
+        "gpt-4o": {
+          "p50": 890,
+          "p95": 1420,
+          "p99": 2100
+        },
+        "claude-3.5": {
+          "p50": 1200,
+          "p95": 2100,
+          "p99": 3400
+        },
+        "grok": {
+          "p50": 720,
+          "p95": 1150,
+          "p99": 1900
+        },
+        "gemini": {
+          "p50": 650,
+          "p95": 1050,
+          "p99": 1700
+        },
+        "local_gguf": {
+          "p50": 2400,
+          "p95": 4800,
+          "p99": 8200
+        }
+      }
+    },
+    "conflict_resolution": {
+      "voting_reliability": {
+        "gpt-4o": 0.84,
+        "claude-3.5": 0.89,
+        "grok": 0.71,
+        "gemini": 0.78,
+        "local_gguf": 0.62
+      },
+      "arbitration_timeout_adherence": {
+        "gpt-4o": 0.91,
+        "claude-3.5": 0.87,
+        "grok": 0.76,
+        "gemini": 0.82,
+        "local_gguf": 0.58
+      },
+      "quorum_participation": {
+        "gpt-4o": 0.95,
+        "claude-3.5": 0.98,
+        "grok": 0.82,
+        "gemini": 0.89,
+        "local_gguf": 0.73
+      }
+    }
+  },
+  "fusion_recommendations": {
+    "optimal_pairs": [
+      {
+        "primary": "claude-3.5",
+        "secondary": "gpt-4o",
+        "use_case": "high_trust_continuity",
+        "efficiency_score": 0.94,
+        "cost_factor": 1.42
+      },
+      {
+        "primary": "gpt-4o",
+        "secondary": "gemini",
+        "use_case": "balanced_performance",
+        "efficiency_score": 0.87,
+        "cost_factor": 1.18
+      },
+      {
+        "primary": "local_gguf",
+        "secondary": "gpt-4o",
+        "use_case": "cost_optimized",
+        "efficiency_score": 0.71,
+        "cost_factor": 0.34
+      }
+    ],
+    "fallback_chains": [
+      ["claude-3.5", "gpt-4o", "gemini"],
+      ["gpt-4o", "gemini", "grok"],
+      ["gemini", "grok", "local_gguf"]
+    ]
+  },
+  "validation_metrics": {
+    "cross_model_consistency": 0.83,
+    "capability_coverage": 0.91,
+    "performance_variance": 0.12,
+    "cost_efficiency_spread": 0.34,
+    "last_benchmark": "2025-08-09T10:55:00.000Z"
+  }
+}

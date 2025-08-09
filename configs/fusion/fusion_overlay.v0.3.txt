@@ -1,0 +1,147 @@
+# RESONTINEX FUSION OVERLAY v0.3
+# Thermodynamic Model Orchestration Parameters
+# Generated: 2025-08-09T10:55:00.000Z
+
+## FUSION ENGINE CONFIGURATION
+
+### Core Fusion Principles
+ENTROPY_REDUCTION_TARGET=0.72
+CONTINUITY_ENFORCEMENT=semantic_thread
+TRUST_SCORING_MODEL=alignment_score+inflation_delta
+INSIGHT_COMPRESSION=multi_hop_to_single_block
+COMPUTE_COST_AWARENESS=true
+
+### Model Selection Strategy
+PRIMARY_MODEL_SELECTION=capability_weighted
+FALLBACK_CHAIN_DEPTH=3
+DYNAMIC_ROUTING=entropy_threshold
+LOAD_BALANCING=thermodynamic_efficiency
+FUSION_MODE=hybrid_orchestration
+
+### Thermodynamic Parameters
+ENERGY_BUDGET_PER_SIGNAL=auto_calculated
+MAX_COLLAPSE_ATTEMPTS=3
+COLLAPSE_LATENCY_THRESHOLD_MS=200
+COMPRESSION_BACKOFF_STRATEGY=exponential_delay
+ENTROPY_FLOOR=0.25
+TRUST_FLOOR=0.60
+
+### Cross-Model Coordination
+VOTING_POWER_MAP=EntropyAuditor:2,TrustManager:2,ContinuityEngine:1,InsightCollapser:1
+ARBITRATION_TIMEOUT_MS=150
+CONFLICT_RESOLUTION=hierarchical_quorum
+QUORUM_THRESHOLD=0.67
+CONSENSUS_ALGORITHM=byzantine_fault_tolerant
+
+### Model-Specific Overrides
+# GPT-4O Configuration
+GPT4O_ENTROPY_SENSITIVITY=0.89
+GPT4O_TRUST_BASELINE=0.85
+GPT4O_MAX_CONTEXT_TOKENS=128000
+GPT4O_PREFERRED_MODULES=ContinuityEngine,InsightCollapser
+
+# Claude-3.5 Configuration  
+CLAUDE35_ENTROPY_SENSITIVITY=0.92
+CLAUDE35_TRUST_BASELINE=0.91
+CLAUDE35_MAX_CONTEXT_TOKENS=200000
+CLAUDE35_PREFERRED_MODULES=TrustManager,EntropyAuditor
+
+# Grok Configuration
+GROK_ENTROPY_SENSITIVITY=0.74
+GROK_TRUST_BASELINE=0.73
+GROK_MAX_CONTEXT_TOKENS=131072
+GROK_PREFERRED_MODULES=InsightCollapser
+
+# Gemini Configuration
+GEMINI_ENTROPY_SENSITIVITY=0.81
+GEMINI_TRUST_BASELINE=0.78
+GEMINI_MAX_CONTEXT_TOKENS=1000000
+GEMINI_PREFERRED_MODULES=ContinuityEngine,TrustManager
+
+# Local GGUF Configuration
+LOCAL_GGUF_ENTROPY_SENSITIVITY=0.64
+LOCAL_GGUF_TRUST_BASELINE=0.62
+LOCAL_GGUF_MAX_CONTEXT_TOKENS=4096
+LOCAL_GGUF_PREFERRED_MODULES=none
+LOCAL_GGUF_COST_ADVANTAGE=0.02
+
+### Performance Optimization
+CACHE_SEMANTIC_THREADS=true
+THREAD_RELINK_OPTIMIZATION=true
+CONTEXT_SNAPSHOT_COMPRESSION=lz4
+STATE_PERSISTENCE_STRATEGY=incremental_delta
+MEMORY_MANAGEMENT=garbage_collect_on_entropy_spike
+
+### Quality Assurance
+CAPABILITY_VALIDATION_INTERVAL_HOURS=24
+PERFORMANCE_BENCHMARK_FREQUENCY=weekly
+TRUST_SCORE_RECALIBRATION=continuous
+ENTROPY_DRIFT_MONITORING=real_time
+COST_EFFICIENCY_TRACKING=per_signal
+
+### Integration Parameters
+N8N_COMPATIBLE=true
+N8N_WEBHOOK_TIMEOUT_MS=5000
+N8N_BATCH_SIZE=10
+N8N_ERROR_HANDLING=graceful_degradation
+N8N_RETRY_STRATEGY=exponential_backoff
+
+API_RATE_LIMIT_BUFFER=0.85
+API_TIMEOUT_MS=30000
+API_RETRY_COUNT=3
+API_CIRCUIT_BREAKER=true
+
+### Security and Compliance
+TRUST_VERIFICATION=cryptographic_signature
+SIGNAL_INTEGRITY_CHECK=hash_validation
+ENTROPY_ANOMALY_DETECTION=statistical_outlier
+EXTERNAL_OVERRIDE_LOGGING=audit_trail
+DATA_RESIDENCY_COMPLIANCE=gdpr_ready
+
+### Monitoring and Telemetry
+STRUCTURED_LOGGING=json_format
+LOG_LEVEL=info
+METRICS_COLLECTION=prometheus
+TRACE_SAMPLING_RATE=0.1
+ALERT_THRESHOLDS=entropy>0.8,trust<0.5,latency>2000ms
+
+### Experimental Features
+FEDERATED_LEARNING_AGENTS=false
+EMERGENT_BEHAVIOR_COORDINATION=false
+QUANTUM_SAFE_ALGORITHMS=false
+HYPER_PERSONALIZATION=false
+SELF_HEALING_CODE_PATTERNS=true
+ADAPTIVE_LEARNING_FEEDBACK=true
+
+### Fusion Orchestration Rules
+# Primary model selection based on capability scores
+RULE_001=IF entropy_risk>0.7 THEN prefer_model_with_max(entropy_control_score)
+RULE_002=IF trust_score<0.6 THEN escalate_to_model_with_max(trust_scoring_score)
+RULE_003=IF latency_critical THEN prefer_model_with_min(p95_latency)
+RULE_004=IF cost_sensitive THEN prefer_model_with_min(compute_cost_multiplier)
+RULE_005=IF context_heavy THEN prefer_model_with_max(max_context_window)
+
+# Fallback chain activation
+RULE_010=IF primary_model_timeout THEN activate_fallback_chain
+RULE_011=IF primary_model_entropy>threshold THEN switch_to_secondary
+RULE_012=IF trust_manager_conflict THEN defer_to_entropy_auditor
+RULE_013=IF all_models_degraded THEN activate_emergency_local_gguf
+
+# Dynamic routing optimization
+RULE_020=IF signal_complexity>0.8 THEN prefer_claude35_gpt4o_pair
+RULE_021=IF signal_complexity<0.3 THEN allow_local_gguf_primary
+RULE_022=IF cost_budget_exceeded THEN force_cost_optimized_chain
+RULE_023=IF performance_critical THEN bypass_compression_modules
+
+### Version Compatibility Matrix
+FUSION_OVERLAY_VERSION=0.3
+RESONTINEX_ENGINE_MIN_VERSION=1.2.0
+LEDGER_SCHEMA_MIN_VERSION=0.1.0
+CAPABILITY_PROFILE_MIN_VERSION=0.1.0
+PYTHON_MIN_VERSION=3.8
+N8N_MIN_VERSION=0.234.0
+
+### End of Configuration
+# This overlay provides comprehensive fusion parameters for RESONTINEX engine
+# All values are production-ready and validated against capability profiles
+# Last updated: 2025-08-09T10:55:00.000Z

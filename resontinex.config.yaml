@@ -1,0 +1,236 @@
+# RESONTINEX Configuration File
+# Production configuration for fusion engine and module orchestration
+# Generated: 2025-08-09T10:55:00.000Z
+
+# Core Engine Configuration
+engine:
+  name: "RESONTINEX"
+  version: "1.2.0"
+  mode: "production"
+  debug: false
+  log_level: "info"
+
+# Fusion Engine Configuration
+fusion:
+  # Primary fusion configuration files
+  ledger_path: "./configs/fusion/model_semantics_ledger.v0.1.0.json"
+  overlay_path: "./configs/fusion/fusion_overlay.v0.3.txt"
+  schema_path: "./configs/fusion/capability_profile.schema.json"
+  
+  # Environment variable overrides
+  env_override: "${RESON_FUSION_LEDGER_PATH:-}"
+  overlay_env_override: "${RESON_FUSION_OVERLAY_PATH:-}"
+  schema_env_override: "${RESON_FUSION_SCHEMA_PATH:-}"
+  
+  # Fusion engine runtime settings
+  enabled: true
+  auto_validation: true
+  hot_reload: false
+  backup_configs: true
+  
+  # Performance settings
+  cache_enabled: true
+  cache_ttl_seconds: 3600
+  preload_models: true
+  optimization_level: "high"
+
+# Module Configuration
+modules:
+  continuity_engine:
+    enabled: true
+    state_persistence: "semantic_thread"
+    recovery_protocol: "context_snapshot+thread_relink"
+    max_thread_depth: 50
+    snapshot_interval_ms: 5000
+    
+  trust_manager:
+    enabled: true
+    scoring_model: "alignment_score + inflation_delta"
+    trust_floor: 0.60
+    recalibration_interval_ms: 30000
+    audit_trail: true
+    
+  entropy_auditor:
+    enabled: true
+    threshold: 0.72
+    measurement_strategy: "token_variance_delta"
+    entropy_metric: "semantic_drift_score"
+    monitoring_interval_ms: 1000
+    
+  insight_collapser:
+    enabled: true
+    compression_strategy: "multi-hop to single-block"
+    reuse_format: "abstract + justification + canonical_form"
+    canonical_versioning: true
+    max_compression_ratio: 5.0
+
+# Model Integration Configuration
+models:
+  supported_models:
+    - "gpt-4o"
+    - "claude-3.5"
+    - "grok"
+    - "gemini"
+    - "local_gguf"
+    
+  default_primary: "claude-3.5"
+  default_secondary: "gpt-4o"
+  fallback_chain:
+    - "claude-3.5"
+    - "gpt-4o"
+    - "gemini"
+    - "grok"
+    - "local_gguf"
+    
+  rate_limits:
+    gpt-4o: 10000
+    claude-3.5: 8000
+    grok: 15000
+    gemini: 12000
+    local_gguf: -1  # unlimited
+    
+  timeout_ms:
+    gpt-4o: 30000
+    claude-3.5: 45000
+    grok: 25000
+    gemini: 20000
+    local_gguf: 60000
+
+# Thermodynamic Configuration
+thermodynamics:
+  energy_budget_per_signal: "auto_calculated"
+  compute_cost_aware_compression: true
+  max_collapse_attempts: 3
+  collapse_latency_threshold_ms: 200
+  compression_backoff_strategy: "exponential_delay"
+  entropy_floor: 0.25
+  
+# Conflict Resolution Configuration
+conflict_resolution:
+  type: "hierarchical + quorum-based"
+  priority_order:
+    - "EntropyAuditor"
+    - "TrustManager"
+    - "ContinuityEngine"
+    - "InsightCollapser"
+  strategy: "First responder flags → module quorum vote → deferred arbitration"
+  voting_power_map:
+    EntropyAuditor: 2
+    TrustManager: 2
+    ContinuityEngine: 1
+    InsightCollapser: 1
+  arbitration_timeout_ms: 150
+  quorum_threshold: 0.67
+
+# Integration Configuration
+integrations:
+  n8n:
+    compatible: true
+    webhook_timeout_ms: 5000
+    batch_size: 10
+    error_handling: "graceful_degradation"
+    retry_strategy: "exponential_backoff"
+    max_retries: 3
+    
+  api:
+    rate_limit_buffer: 0.85
+    timeout_ms: 30000
+    retry_count: 3
+    circuit_breaker: true
+    circuit_breaker_threshold: 5
+    circuit_breaker_timeout_ms: 60000
+
+# Security Configuration
+security:
+  trust_verification: "cryptographic_signature"
+  signal_integrity_check: "hash_validation"
+  entropy_anomaly_detection: "statistical_outlier"
+  external_override_logging: "audit_trail"
+  data_residency_compliance: "gdpr_ready"
+  encryption_at_rest: true
+  encryption_in_transit: true
+
+# Monitoring and Telemetry
+monitoring:
+  structured_logging: true
+  log_format: "json"
+  metrics_collection: true
+  metrics_format: "prometheus"
+  trace_sampling_rate: 0.1
+  performance_monitoring: true
+  
+  alert_thresholds:
+    entropy_high: 0.8
+    trust_low: 0.5
+    latency_high_ms: 2000
+    error_rate_high: 0.05
+    
+  retention:
+    logs_days: 30
+    metrics_days: 90
+    traces_days: 7
+
+# Storage Configuration
+storage:
+  state_persistence_path: "./data/state"
+  cache_path: "./data/cache"
+  logs_path: "./logs"
+  backup_path: "./backups"
+  
+  cleanup:
+    auto_cleanup: true
+    max_size_mb: 1024
+    retention_days: 30
+
+# Development Configuration
+development:
+  hot_reload: false
+  debug_mode: false
+  profiling: false
+  test_mode: false
+  mock_models: false
+  
+  override_paths:
+    ledger: "${RESON_DEV_LEDGER_PATH:-}"
+    overlay: "${RESON_DEV_OVERLAY_PATH:-}"
+    schema: "${RESON_DEV_SCHEMA_PATH:-}"
+
+# Environment Variable Mappings
+env_vars:
+  # Core configuration overrides
+  config_path: "${RESON_CONFIG_PATH:-./resontinex.config.yaml}"
+  data_path: "${RESON_DATA_PATH:-./data}"
+  logs_path: "${RESON_LOGS_PATH:-./logs}"
+  
+  # Fusion-specific overrides
+  fusion_enabled: "${RESON_FUSION_ENABLED:-true}"
+  fusion_ledger: "${RESON_FUSION_LEDGER_PATH:-}"
+  fusion_overlay: "${RESON_FUSION_OVERLAY_PATH:-}"
+  fusion_schema: "${RESON_FUSION_SCHEMA_PATH:-}"
+  
+  # Model configuration overrides
+  default_model: "${RESON_DEFAULT_MODEL:-claude-3.5}"
+  model_timeout: "${RESON_MODEL_TIMEOUT_MS:-30000}"
+  
+  # Performance overrides
+  cache_enabled: "${RESON_CACHE_ENABLED:-true}"
+  cache_ttl: "${RESON_CACHE_TTL_SECONDS:-3600}"
+  
+  # Security overrides
+  encryption_key: "${RESON_ENCRYPTION_KEY:-}"
+  api_key_gpt4o: "${RESON_API_KEY_GPT4O:-}"
+  api_key_claude: "${RESON_API_KEY_CLAUDE:-}"
+  api_key_grok: "${RESON_API_KEY_GROK:-}"
+  api_key_gemini: "${RESON_API_KEY_GEMINI:-}"
+
+# Version Information
+version_info:
+  config_version: "1.0.0"
+  engine_min_version: "1.2.0"
+  fusion_overlay_version: "0.3"
+  ledger_schema_version: "0.1.0"
+  last_updated: "2025-08-09T10:55:00.000Z"
+  compatibility_matrix:
+    python_min: "3.8"
+    n8n_min: "0.234.0"
+    node_min: "16.0.0"

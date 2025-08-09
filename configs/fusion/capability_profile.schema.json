@@ -1,0 +1,449 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://resontinex.ai/schemas/capability_profile/v0.1.0",
+  "title": "RESONTINEX Model Capability Profile Schema",
+  "description": "JSON Schema for validating cross-model capability mappings in RESONTINEX fusion engine",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "metadata",
+    "cross_model",
+    "fusion_recommendations",
+    "validation_metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the capability profile schema"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the ledger was generated"
+    },
+    "ledger_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this capability ledger"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "description",
+        "engine_version",
+        "fusion_compatibility",
+        "last_validated"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Human-readable description of the capability profile"
+        },
+        "engine_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Version of the RESONTINEX engine this profile targets"
+        },
+        "fusion_compatibility": {
+          "type": "string",
+          "pattern": "^v\\d+\\.\\d+$",
+          "description": "Fusion overlay compatibility version"
+        },
+        "last_validated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last validation run"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_model": {
+      "type": "object",
+      "required": [
+        "keyword_support",
+        "module_compatibility",
+        "thermodynamic_efficiency",
+        "conflict_resolution"
+      ],
+      "properties": {
+        "keyword_support": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0,
+                  "description": "Capability score between 0.0 and 1.0"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "description": "Cross-model keyword capability mappings"
+        },
+        "module_compatibility": {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Z][a-zA-Z]+$": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-z_]+$": {
+                      "oneOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0.0,
+                          "maximum": 1.0
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "description": "Module-specific compatibility metrics per model"
+        },
+        "thermodynamic_efficiency": {
+          "type": "object",
+          "required": [
+            "energy_per_signal",
+            "compute_cost_multiplier",
+            "latency_profile_ms"
+          ],
+          "properties": {
+            "energy_per_signal": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "description": "Energy consumption per signal processing unit"
+                }
+              },
+              "additionalProperties": false
+            },
+            "compute_cost_multiplier": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "description": "Relative cost multiplier (1.0 = baseline)"
+                }
+              },
+              "additionalProperties": false
+            },
+            "latency_profile_ms": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "object",
+                  "required": ["p50", "p95", "p99"],
+                  "properties": {
+                    "p50": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "50th percentile latency in milliseconds"
+                    },
+                    "p95": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "95th percentile latency in milliseconds"
+                    },
+                    "p99": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "99th percentile latency in milliseconds"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "description": "Performance and efficiency metrics"
+        },
+        "conflict_resolution": {
+          "type": "object",
+          "required": [
+            "voting_reliability",
+            "arbitration_timeout_adherence",
+            "quorum_participation"
+          ],
+          "properties": {
+            "voting_reliability": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0,
+                  "description": "Reliability score for conflict resolution voting"
+                }
+              },
+              "additionalProperties": false
+            },
+            "arbitration_timeout_adherence": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0,
+                  "description": "Adherence to arbitration timeout limits"
+                }
+              },
+              "additionalProperties": false
+            },
+            "quorum_participation": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9\\-\\.]+$": {
+                  "type": "number",
+                  "minimum": 0.0,
+                  "maximum": 1.0,
+                  "description": "Active participation in quorum decisions"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false,
+          "description": "Conflict resolution capability metrics"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Cross-model compatibility and performance data"
+    },
+    "fusion_recommendations": {
+      "type": "object",
+      "required": [
+        "optimal_pairs",
+        "fallback_chains"
+      ],
+      "properties": {
+        "optimal_pairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "primary",
+              "secondary",
+              "use_case",
+              "efficiency_score",
+              "cost_factor"
+            ],
+            "properties": {
+              "primary": {
+                "type": "string",
+                "pattern": "^[a-z0-9\\-\\.]+$",
+                "description": "Primary model identifier"
+              },
+              "secondary": {
+                "type": "string",
+                "pattern": "^[a-z0-9\\-\\.]+$",
+                "description": "Secondary model identifier"
+              },
+              "use_case": {
+                "type": "string",
+                "pattern": "^[a-z_]+$",
+                "description": "Recommended use case identifier"
+              },
+              "efficiency_score": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "Combined efficiency score"
+              },
+              "cost_factor": {
+                "type": "number",
+                "minimum": 0.0,
+                "description": "Relative cost factor"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "description": "Recommended optimal model pairs"
+        },
+        "fallback_chains": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9\\-\\.]+$"
+            },
+            "minItems": 2,
+            "uniqueItems": true
+          },
+          "minItems": 1,
+          "description": "Fallback model chains for reliability"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Fusion optimization recommendations"
+    },
+    "validation_metrics": {
+      "type": "object",
+      "required": [
+        "cross_model_consistency",
+        "capability_coverage",
+        "performance_variance",
+        "cost_efficiency_spread",
+        "last_benchmark"
+      ],
+      "properties": {
+        "cross_model_consistency": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Consistency score across all models"
+        },
+        "capability_coverage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Coverage of required capabilities"
+        },
+        "performance_variance": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Variance in performance metrics"
+        },
+        "cost_efficiency_spread": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Spread in cost efficiency ratios"
+        },
+        "last_benchmark": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last benchmark run"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Validation and quality metrics"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "model_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9\\-\\.]+$",
+      "description": "Valid model identifier (lowercase, numbers, hyphens, dots)"
+    },
+    "capability_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Normalized capability score"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 formatted timestamp"
+    }
+  },
+  "examples": [
+    {
+      "schema_version": "0.1.0",
+      "generated_at": "2025-08-09T10:55:00.000Z",
+      "ledger_id": "resontinex_fusion_v010",
+      "metadata": {
+        "description": "Cross-model capability mappings for RESONTINEX fusion engine",
+        "engine_version": "1.2.0",
+        "fusion_compatibility": "v0.3",
+        "last_validated": "2025-08-09T10:55:00.000Z"
+      },
+      "cross_model": {
+        "keyword_support": {
+          "entropy_control": {
+            "gpt-4o": 0.92,
+            "claude-3.5": 0.89
+          }
+        },
+        "module_compatibility": {
+          "ContinuityEngine": {
+            "gpt-4o": {
+              "semantic_thread_support": true,
+              "context_snapshot_reliability": 0.91
+            }
+          }
+        },
+        "thermodynamic_efficiency": {
+          "energy_per_signal": {
+            "gpt-4o": 12.3
+          },
+          "compute_cost_multiplier": {
+            "gpt-4o": 1.00
+          },
+          "latency_profile_ms": {
+            "gpt-4o": {
+              "p50": 890,
+              "p95": 1420,
+              "p99": 2100
+            }
+          }
+        },
+        "conflict_resolution": {
+          "voting_reliability": {
+            "gpt-4o": 0.84
+          },
+          "arbitration_timeout_adherence": {
+            "gpt-4o": 0.91
+          },
+          "quorum_participation": {
+            "gpt-4o": 0.95
+          }
+        }
+      },
+      "fusion_recommendations": {
+        "optimal_pairs": [
+          {
+            "primary": "claude-3.5",
+            "secondary": "gpt-4o",
+            "use_case": "high_trust_continuity",
+            "efficiency_score": 0.94,
+            "cost_factor": 1.42
+          }
+        ],
+        "fallback_chains": [
+          ["claude-3.5", "gpt-4o", "gemini"]
+        ]
+      },
+      "validation_metrics": {
+        "cross_model_consistency": 0.83,
+        "capability_coverage": 0.91,
+        "performance_variance": 0.12,
+        "cost_efficiency_spread": 0.34,
+        "last_benchmark": "2025-08-09T10:55:00.000Z"
+      }
+    }
+  ]
+}

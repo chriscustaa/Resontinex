@@ -1,0 +1,166 @@
+name: fusion-ci
+on: 
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'configs/fusion/**'
+      - 'scripts/**'
+      - '.github/workflows/fusion-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'configs/fusion/**'
+      - 'scripts/**'
+      - '.github/workflows/fusion-ci.yml'
+
+jobs:
+  fusion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Cache CI validation artifacts
+        uses: actions/cache@v4
+        with:
+          path: .ci_cache
+          key: fusion-ci-cache-${{ hashFiles('configs/fusion/**') }}
+          restore-keys: |
+            fusion-ci-cache-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install jsonschema pyyaml
+
+      - name: Validate fusion configurations
+        id: validate_configs
+        run: |
+          echo "::group::Fusion Configuration Validation"
+          python scripts/validate-fusion-ci.py --config-dir configs/fusion --cache-dir .ci_cache
+          validation_exit_code=$?
+          
+          if [ $validation_exit_code -eq 0 ]; then
+            echo "validation_status=success" >> $GITHUB_OUTPUT
+            echo "✅ Fusion configuration validation passed"
+          else
+            echo "validation_status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Fusion configuration validation failed"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+      - name: Install evaluation dependencies
+        if: steps.validate_configs.outputs.validation_status == 'success'
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run Fusion Effectiveness Evaluation
+        id: fusion_evaluation  
+        if: steps.validate_configs.outputs.validation_status == 'success'
+        run: |
+          echo "::group::Fusion Effectiveness Check"
+          
+          mkdir -p build/reports/fusion
+          
+          python scripts/evaluate-fusion.py \
+            --scenarios configs/fusion/eval_scenarios.yaml \
+            --out build/reports/fusion/ \
+            --iterations 2 \
+            --config-dir configs/fusion || evaluation_exit_code=$?
+          
+          if [ ${evaluation_exit_code:-0} -eq 0 ]; then
+            echo "evaluation_status=success" >> $GITHUB_OUTPUT
+            echo "✅ Fusion effectiveness evaluation completed"
+          else
+            echo "evaluation_status=failed" >> $GITHUB_OUTPUT
+            echo "⚠️ Fusion effectiveness evaluation failed (soft failure)"
+          fi
+          echo "::endgroup::"
+
+      - name: Security PII scan
+        run: |
+          echo "::group::Security Scan"
+          
+          secret_patterns_found=0
+          
+          if grep -r -E "\b[A-Za-z0-9]{32,}\b" configs/fusion/ 2>/dev/null | grep -v example | grep -v test; then
+            echo "⚠️ Potential API keys detected"
+            secret_patterns_found=$((secret_patterns_found + 1))
+          fi
+          
+          if grep -r -E "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b" configs/fusion/ 2>/dev/null | grep -v example.com | grep -v test.com; then
+            echo "⚠️ Potential email addresses detected"  
+            secret_patterns_found=$((secret_patterns_found + 1))
+          fi
+          
+          if [ $secret_patterns_found -gt 0 ]; then
+            echo "❌ Security scan found $secret_patterns_found potential issues"
+            exit 1
+          fi
+          
+          echo "✅ Security scan passed"
+          echo "::endgroup::"
+
+      - name: Generate build metadata
+        id: build_metadata
+        run: |
+          echo "::group::Build Metadata"
+          
+          build_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+          build_commit=$(git rev-parse --short HEAD)
+          
+          mkdir -p build/reports/fusion
+          
+          echo "build_timestamp=$build_timestamp" >> $GITHUB_OUTPUT
+          echo "build_commit=$build_commit" >> $GITHUB_OUTPUT
+          
+          echo "✅ Build metadata generated"
+          echo "::endgroup::"
+
+      - name: Upload fusion reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fusion-reports-${{ steps.build_metadata.outputs.build_commit }}
+          path: build/reports/fusion/
+          retention-days: 30
+
+      - name: Upload CI cache
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-cache-${{ steps.build_metadata.outputs.build_commit }}
+          path: .ci_cache/
+          retention-days: 7
+
+      - name: Final status check
+        run: |
+          echo "::group::Final CI Status"
+          
+          validation_status="${{ steps.validate_configs.outputs.validation_status }}"
+          evaluation_status="${{ steps.fusion_evaluation.outputs.evaluation_status }}"
+          
+          if [ "$validation_status" != "success" ]; then
+            echo "❌ CI FAILED: Configuration validation failed"
+            exit 1
+          fi
+          
+          if [ "$evaluation_status" == "failed" ]; then
+            echo "⚠️ CI WARNING: Fusion evaluation failed (continuing as soft failure)"
+          fi
+          
+          echo "✅ CI PASSED: Core validations successful"
+          echo "::endgroup::"
