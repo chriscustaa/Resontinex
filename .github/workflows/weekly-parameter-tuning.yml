@@ -1,6 +1,6 @@
 name: Weekly Fusion Parameter Tuning
 
-on:
+"on":
   schedule:
     # Run every Sunday at 02:00 UTC
     - cron: '0 2 * * 0'
@@ -61,7 +61,7 @@ jobs:
           
       - name: Run drift detection check
         run: |
-          python scripts/watch-drift.py --once
+          python scripts/watch_drift.py --once
           echo "Drift detection completed"
           
       - name: Create tuning branch
@@ -85,7 +85,7 @@ jobs:
           fi
           
           echo "Running parameter tuning with args: $TUNING_ARGS"
-          python scripts/tune-overlay.py $TUNING_ARGS > tuning_output.log 2>&1
+          python scripts/tune_overlay.py $TUNING_ARGS > tuning_output.log 2>&1
           
           # Check if tuning was successful
           if [ $? -eq 0 ]; then

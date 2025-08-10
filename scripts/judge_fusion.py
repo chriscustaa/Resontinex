@@ -15,12 +15,13 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Define the classes we need locally to avoid import issues
-import re
-import statistics
-from typing import Dict, List, Any, Tuple, Optional
-from dataclasses import dataclass
-from datetime import datetime, timezone
+# Ensure monkeypatch targets exist
+try:
+    import openai  # noqa
+except Exception:  # provide stub for tests
+    class _OpenAI:
+        def __init__(self): pass
+    openai = _OpenAI()
 
 class Prompt3Evaluator:
     """Production-grade evaluator implementing Prompt-3 methodology for response quality assessment."""
@@ -138,7 +139,8 @@ class Prompt3Evaluator:
         for count in char_freq.values():
             probability = count / total_chars
             if probability > 0:
-                entropy -= probability * (probability.bit_length() - 1)
+                import math
+                entropy -= probability * math.log2(probability)
         
         max_entropy = 4.5
         return min(entropy / max_entropy, 1.0)
@@ -330,6 +332,77 @@ class RuleBasedValidator:
             technical_completeness=min(completeness_score, 1.0),
             rule_score=min(rule_score, 1.0)
         )
+    
+    def validate_consistency(self, scores: Dict[str, float]) -> Dict[str, Any]:
+        """Validate consistency of scoring across judges."""
+        variance = self._calculate_variance(scores)
+        outliers = self._detect_outliers(scores)
+        confidence = self._calculate_confidence(scores)
+        
+        is_consistent = variance < 0.1 and len(outliers) == 0
+        
+        return {
+            'is_consistent': is_consistent,
+            'variance': variance,
+            'outliers': outliers,
+            'confidence': confidence,
+            'recommendation': 'accept' if is_consistent else 'review'
+        }
+    
+    def _calculate_variance(self, scores) -> float:
+        """Calculate variance in scoring."""
+        # Handle both dict and list inputs
+        if isinstance(scores, dict):
+            values = list(scores.values())
+        elif isinstance(scores, list):
+            values = scores
+        else:
+            return 0.0
+        
+        if not values or len(values) < 2:
+            return 0.0
+        
+        mean_score = sum(values) / len(values)
+        variance = sum((score - mean_score) ** 2 for score in values) / len(values)
+        return variance
+    
+    def _detect_outliers(self, scores) -> List[str]:
+        """Detect outlier scores using simple threshold."""
+        # Handle both dict and list inputs
+        if isinstance(scores, dict):
+            values = list(scores.values())
+            keys = list(scores.keys())
+        elif isinstance(scores, list):
+            values = scores
+            keys = [f"item_{i}" for i in range(len(scores))]
+        else:
+            return []
+        
+        if not values or len(values) < 3:
+            return []
+        
+        mean_score = sum(values) / len(values)
+        std_dev = (sum((score - mean_score) ** 2 for score in values) / len(values)) ** 0.5
+        
+        outliers = []
+        threshold = 2.0 * std_dev  # 2 standard deviations
+        
+        for i, score in enumerate(values):
+            if abs(score - mean_score) > threshold:
+                outliers.append(keys[i])
+        
+        return outliers
+    
+    def _calculate_confidence(self, scores) -> float:
+        """Calculate confidence level based on score consistency."""
+        if not scores:
+            return 0.0
+        
+        variance = self._calculate_variance(scores)
+        # Higher variance = lower confidence
+        confidence = max(0.0, min(1.0, 1.0 - (variance * 10)))
+        
+        return confidence
 
 
 class AlternativeJudgeEvaluator:
@@ -434,7 +507,8 @@ class CrossJudgeEvaluator:
     def __init__(self):
         self.primary_judge = Prompt3Evaluator()
         self.secondary_judge = AlternativeJudgeEvaluator()
-        self.rule_validator = RuleBasedValidator()
+        self.validator = RuleBasedValidator()  # Alias for tests
+        self.rule_validator = self.validator
         
     def evaluate_with_cross_judges(self, response: str, scenario: Dict[str, Any]) -> CrossJudgeResult:
         """Perform cross-judge evaluation with rule validation."""
@@ -529,6 +603,28 @@ class CrossJudgeEvaluator:
         improvements['judge_consensus_improvement'] = baseline_variance - overlay_variance
         
         return improvements
+    
+    def evaluate_cross_judge(self, scenario: Dict[str, Any], baseline_response: str, overlay_response: str) -> Dict[str, Any]:
+        """Evaluate cross-judge process for test compatibility."""
+        baseline_result = self.evaluate_with_cross_judges(baseline_response, scenario)
+        baseline_result.configuration = 'baseline'
+        
+        overlay_result = self.evaluate_with_cross_judges(overlay_response, scenario)
+        overlay_result.configuration = 'overlay'
+        
+        improvements = self.calculate_improvement_metrics(baseline_result, overlay_result)
+        
+        return {
+            'primary_score': overlay_result.final_scores,
+            'validation_result': {
+                'is_consistent': overlay_result.rule_check.rule_score > 0.75,
+                'rule_score': overlay_result.rule_check.rule_score
+            },
+            'final_recommendation': 'overlay' if improvements['overall_improvement'] > 0 else 'baseline',
+            'baseline_result': baseline_result,
+            'overlay_result': overlay_result,
+            'improvements': improvements
+        }
 
 
 def main():
@@ -610,6 +706,9 @@ def main():
     print(f"  Code Compiles: {overlay_result.rule_check.code_compiles}")
     print(f"  Has Guardrails: {overlay_result.rule_check.has_guardrails}")
 
+
+# Export classes for tests
+__all__ = ["RuleBasedValidator", "CrossJudgeEvaluator", "Prompt3Evaluator", "openai"]
 
 if __name__ == "__main__":
     main()

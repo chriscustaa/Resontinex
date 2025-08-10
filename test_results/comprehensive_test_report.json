@@ -1,0 +1,248 @@
+{
+  "timestamp": "2025-08-09T23:51:55.076060",
+  "summary": {
+    "total_tests": 60,
+    "passed": 10,
+    "failed": 1,
+    "errors": 49,
+    "success_rate": 0.167,
+    "duration_seconds": 0.12
+  },
+  "test_modules": {
+    "cross_judge": "Unit tests for cross-judge evaluation system",
+    "drift_detection": "Unit tests for drift detection watchdog",
+    "parameter_tuning": "Unit tests for parameter optimization",
+    "runtime_router": "Unit tests for runtime routing system",
+    "circuit_breaker": "Unit tests for circuit breaker and SLO monitoring",
+    "integration": "End-to-end integration tests"
+  },
+  "system_capabilities": {
+    "cross_judge_evaluation": "Dual-evaluator system with rule-based validation",
+    "parameter_auto_tuning": "Grid-search optimization with scenario awareness",
+    "drift_detection": "Version monitoring with quality gates",
+    "runtime_routing": "Dynamic micro-overlay selection",
+    "production_safety": "Circuit breaker patterns and SLO monitoring",
+    "ci_integration": "Automated weekly parameter optimization"
+  },
+  "failures": [
+    {
+      "test": "test_script_existence (test_integration.TestFusionSystemIntegration.test_script_existence)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_integration.py\", line 56, in test_script_existence\n    self.assertTrue(os.path.exists(script_path), f\"Script {script} not found\")\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true : Script watch-drift.py not found\n"
+    }
+  ],
+  "errors": [
+    {
+      "test": "test_breaker_initialization (test_circuit_breaker.TestCircuitBreaker.test_breaker_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 36, in test_breaker_initialization\n    breaker = CircuitBreaker('test_service', self.breaker_config)\nTypeError: CircuitBreaker.__init__() missing 1 required positional argument: 'metrics_collector'\n"
+    },
+    {
+      "test": "test_circuit_state_transitions (test_circuit_breaker.TestCircuitBreaker.test_circuit_state_transitions)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 46, in test_circuit_state_transitions\n    breaker = CircuitBreaker('test_service', self.breaker_config)\nTypeError: CircuitBreaker.__init__() missing 1 required positional argument: 'metrics_collector'\n"
+    },
+    {
+      "test": "test_half_open_recovery (test_circuit_breaker.TestCircuitBreaker.test_half_open_recovery)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 61, in test_half_open_recovery\n    breaker = CircuitBreaker('test_service', self.breaker_config)\nTypeError: CircuitBreaker.__init__() missing 1 required positional argument: 'metrics_collector'\n"
+    },
+    {
+      "test": "test_success_recovery (test_circuit_breaker.TestCircuitBreaker.test_success_recovery)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 79, in test_success_recovery\n    breaker = CircuitBreaker('test_service', self.breaker_config)\nTypeError: CircuitBreaker.__init__() missing 1 required positional argument: 'metrics_collector'\n"
+    },
+    {
+      "test": "test_end_to_end_safety_workflow (test_circuit_breaker.TestCircuitBreakerIntegration.test_end_to_end_safety_workflow)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 316, in test_end_to_end_safety_workflow\n    manager = ProductionSafetyManager(config)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\circuit_breaker.py\", line 357, in __init__\n    self.config_dir = Path(config_dir)\n                      ~~~~^^^^^^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 503, in __init__\n    super().__init__(*args)\n    ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 132, in __init__\n    raise TypeError(\n    ...<2 lines>...\n        f\"not {type(path).__name__!r}\")\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'dict'\n"
+    },
+    {
+      "test": "test_alert_generation (test_circuit_breaker.TestProductionSafetyManager.test_alert_generation)",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\mock.py\", line 1424, in patched\n    return func(*newargs, **newkeywargs)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 277, in test_alert_generation\n    manager = ProductionSafetyManager(self.safety_config)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\circuit_breaker.py\", line 357, in __init__\n    self.config_dir = Path(config_dir)\n                      ~~~~^^^^^^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 503, in __init__\n    super().__init__(*args)\n    ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 132, in __init__\n    raise TypeError(\n    ...<2 lines>...\n        f\"not {type(path).__name__!r}\")\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'dict'\n"
+    },
+    {
+      "test": "test_degradation_decision (test_circuit_breaker.TestProductionSafetyManager.test_degradation_decision)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 255, in test_degradation_decision\n    manager = ProductionSafetyManager(self.safety_config)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\circuit_breaker.py\", line 357, in __init__\n    self.config_dir = Path(config_dir)\n                      ~~~~^^^^^^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 503, in __init__\n    super().__init__(*args)\n    ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 132, in __init__\n    raise TypeError(\n    ...<2 lines>...\n        f\"not {type(path).__name__!r}\")\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'dict'\n"
+    },
+    {
+      "test": "test_safety_manager_initialization (test_circuit_breaker.TestProductionSafetyManager.test_safety_manager_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 224, in test_safety_manager_initialization\n    manager = ProductionSafetyManager(self.safety_config)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\circuit_breaker.py\", line 357, in __init__\n    self.config_dir = Path(config_dir)\n                      ~~~~^^^^^^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 503, in __init__\n    super().__init__(*args)\n    ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 132, in __init__\n    raise TypeError(\n    ...<2 lines>...\n        f\"not {type(path).__name__!r}\")\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'dict'\n"
+    },
+    {
+      "test": "test_service_health_check (test_circuit_breaker.TestProductionSafetyManager.test_service_health_check)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 234, in test_service_health_check\n    manager = ProductionSafetyManager(self.safety_config)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\circuit_breaker.py\", line 357, in __init__\n    self.config_dir = Path(config_dir)\n                      ~~~~^^^^^^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 503, in __init__\n    super().__init__(*args)\n    ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pathlib\\_local.py\", line 132, in __init__\n    raise TypeError(\n    ...<2 lines>...\n        f\"not {type(path).__name__!r}\")\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'dict'\n"
+    },
+    {
+      "test": "test_availability_tracking (test_circuit_breaker.TestSLOMonitor.test_availability_tracking)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 135, in test_availability_tracking\n    monitor.record_request_outcome(success=True, latency=1.5)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'SLOMonitor' object has no attribute 'record_request_outcome'\n"
+    },
+    {
+      "test": "test_error_rate_calculation (test_circuit_breaker.TestSLOMonitor.test_error_rate_calculation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 180, in test_error_rate_calculation\n    monitor.record_request_outcome(success=True, latency=1.5)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'SLOMonitor' object has no attribute 'record_request_outcome'\n"
+    },
+    {
+      "test": "test_latency_p95_calculation (test_circuit_breaker.TestSLOMonitor.test_latency_p95_calculation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 160, in test_latency_p95_calculation\n    monitor.record_request_outcome(success=True, latency=latency)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'SLOMonitor' object has no attribute 'record_request_outcome'\n"
+    },
+    {
+      "test": "test_slo_monitor_initialization (test_circuit_breaker.TestSLOMonitor.test_slo_monitor_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_circuit_breaker.py\", line 122, in test_slo_monitor_initialization\n    self.assertIn('availability', monitor.slos)\n                                  ^^^^^^^^^^^^\nAttributeError: 'SLOMonitor' object has no attribute 'slos'\n"
+    },
+    {
+      "test": "test_cross_evaluation (test_cross_judge.TestCrossJudgeEvaluator.test_cross_evaluation)",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\mock.py\", line 1424, in patched\n    return func(*newargs, **newkeywargs)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 78, in test_cross_evaluation\n    result = evaluator.evaluate_cross_judge(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'CrossJudgeEvaluator' object has no attribute 'evaluate_cross_judge'. Did you mean: 'evaluate_with_cross_judges'?\n"
+    },
+    {
+      "test": "test_evaluator_initialization (test_cross_judge.TestCrossJudgeEvaluator.test_evaluator_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 40, in test_evaluator_initialization\n    self.assertIsNotNone(evaluator.validator)\n                         ^^^^^^^^^^^^^^^^^^^\nAttributeError: 'CrossJudgeEvaluator' object has no attribute 'validator'\n"
+    },
+    {
+      "test": "test_rule_based_validator (test_cross_judge.TestCrossJudgeEvaluator.test_rule_based_validator)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 53, in test_rule_based_validator\n    result = validator.validate_consistency(scores)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuleBasedValidator' object has no attribute 'validate_consistency'\n"
+    },
+    {
+      "test": "test_confidence_calculation (test_cross_judge.TestRuleBasedValidator.test_confidence_calculation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 133, in test_confidence_calculation\n    confidence = self.validator._calculate_confidence(scores)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuleBasedValidator' object has no attribute '_calculate_confidence'\n"
+    },
+    {
+      "test": "test_outlier_detection (test_cross_judge.TestRuleBasedValidator.test_outlier_detection)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 117, in test_outlier_detection\n    outliers = self.validator._detect_outliers(scores)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuleBasedValidator' object has no attribute '_detect_outliers'\n"
+    },
+    {
+      "test": "test_score_variance_calculation (test_cross_judge.TestRuleBasedValidator.test_score_variance_calculation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_cross_judge.py\", line 106, in test_score_variance_calculation\n    variance = self.validator._calculate_variance(scores)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuleBasedValidator' object has no attribute '_calculate_variance'\n"
+    },
+    {
+      "test": "test_drift_detection_workflow (test_drift_detection.TestDriftDetectionIntegration.test_drift_detection_workflow)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 237, in test_drift_detection_workflow\n    watchdog = DriftWatchdog(self.config_path)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\watch_drift.py\", line 217, in __init__\n    self.gate = QualityGate(self.policy.get(\"gates\", {}))\n                            ^^^^^^^^^^^^^^^\nAttributeError: 'str' object has no attribute 'get'\n"
+    },
+    {
+      "test": "test_watchdog_initialization_from_config (test_drift_detection.TestDriftDetectionIntegration.test_watchdog_initialization_from_config)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 227, in test_watchdog_initialization_from_config\n    watchdog = DriftWatchdog(self.config_path)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\..\\scripts\\watch_drift.py\", line 217, in __init__\n    self.gate = QualityGate(self.policy.get(\"gates\", {}))\n                            ^^^^^^^^^^^^^^^\nAttributeError: 'str' object has no attribute 'get'\n"
+    },
+    {
+      "test": "test_model_version_fetching (test_drift_detection.TestDriftWatchdog.test_model_version_fetching)",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\mock.py\", line 1424, in patched\n    return func(*newargs, **newkeywargs)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 113, in test_model_version_fetching\n    monitor = VersionMonitor(self.test_config)\nTypeError: VersionMonitor.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_quality_gate_evaluation (test_drift_detection.TestDriftWatchdog.test_quality_gate_evaluation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 88, in test_quality_gate_evaluation\n    result = gate.evaluate(passing_metrics)\n             ^^^^^^^^^^^^^\nAttributeError: 'QualityGate' object has no attribute 'evaluate'\n"
+    },
+    {
+      "test": "test_version_change_detection (test_drift_detection.TestDriftWatchdog.test_version_change_detection)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 58, in test_version_change_detection\n    monitor = VersionMonitor(self.test_config)\nTypeError: VersionMonitor.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_version_monitor_initialization (test_drift_detection.TestDriftWatchdog.test_version_monitor_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 49, in test_version_monitor_initialization\n    monitor = VersionMonitor(self.test_config)\nTypeError: VersionMonitor.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_version_storage_and_loading (test_drift_detection.TestDriftWatchdog.test_version_storage_and_loading)",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\mock.py\", line 1424, in patched\n    return func(*newargs, **newkeywargs)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 126, in test_version_storage_and_loading\n    monitor = VersionMonitor(self.test_config)\nTypeError: VersionMonitor.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_comprehensive_evaluation (test_drift_detection.TestQualityGate.test_comprehensive_evaluation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 180, in test_comprehensive_evaluation\n    result = gate.evaluate(metrics)\n             ^^^^^^^^^^^^^\nAttributeError: 'QualityGate' object has no attribute 'evaluate'\n"
+    },
+    {
+      "test": "test_threshold_validation (test_drift_detection.TestQualityGate.test_threshold_validation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_drift_detection.py\", line 155, in test_threshold_validation\n    self.assertTrue(gate._check_score_threshold(0.85))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'QualityGate' object has no attribute '_check_score_threshold'\n"
+    },
+    {
+      "test": "test_grid_generation (test_parameter_tuning.TestGridSearchTuner.test_grid_generation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 123, in test_grid_generation\n    tuner = GridSearchTuner(self.parameter_ranges)\nTypeError: GridSearchTuner() takes no arguments\n"
+    },
+    {
+      "test": "test_optimization_scoring (test_parameter_tuning.TestGridSearchTuner.test_optimization_scoring)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 139, in test_optimization_scoring\n    tuner = GridSearchTuner(self.parameter_ranges)\nTypeError: GridSearchTuner() takes no arguments\n"
+    },
+    {
+      "test": "test_optimizer_initialization (test_parameter_tuning.TestParameterOptimizer.test_optimizer_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 59, in test_optimizer_initialization\n    self.assertIsNotNone(optimizer.config)\n                         ^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterOptimizer' object has no attribute 'config'\n"
+    },
+    {
+      "test": "test_parameter_space_generation (test_parameter_tuning.TestParameterOptimizer.test_parameter_space_generation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 69, in test_parameter_space_generation\n    param_space = optimizer._generate_parameter_space()\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterOptimizer' object has no attribute '_generate_parameter_space'\n"
+    },
+    {
+      "test": "test_parameter_validation (test_parameter_tuning.TestParameterOptimizer.test_parameter_validation)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 97, in test_parameter_validation\n    self.assertTrue(optimizer._validate_parameters(valid_params))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterOptimizer' object has no attribute '_validate_parameters'\n"
+    },
+    {
+      "test": "test_end_to_end_optimization (test_parameter_tuning.TestParameterTuningIntegration.test_end_to_end_optimization)",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\mock.py\", line 1424, in patched\n    return func(*newargs, **newkeywargs)\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 282, in test_end_to_end_optimization\n    result = optimizer.run_optimization()\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterOptimizer' object has no attribute 'run_optimization'\n"
+    },
+    {
+      "test": "test_parameter_persistence (test_parameter_tuning.TestParameterTuningIntegration.test_parameter_persistence)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 310, in test_parameter_persistence\n    optimizer._save_optimized_parameters(optimized_params, save_path)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ParameterOptimizer' object has no attribute '_save_optimized_parameters'\n"
+    },
+    {
+      "test": "test_scenario_filtering (test_parameter_tuning.TestScenarioManager.test_scenario_filtering)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 215, in test_scenario_filtering\n    reasoning_scenarios = manager.filter_by_capability('reasoning')\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ScenarioManager' object has no attribute 'filter_by_capability'\n"
+    },
+    {
+      "test": "test_scenario_loading (test_parameter_tuning.TestScenarioManager.test_scenario_loading)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 180, in test_scenario_loading\n    scenarios = manager.get_scenarios()\n                ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ScenarioManager' object has no attribute 'get_scenarios'. Did you mean: 'scenarios'?\n"
+    },
+    {
+      "test": "test_weighted_scoring (test_parameter_tuning.TestScenarioManager.test_weighted_scoring)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_parameter_tuning.py\", line 200, in test_weighted_scoring\n    weighted_score = manager.calculate_weighted_score(scenario_scores)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ScenarioManager' object has no attribute 'calculate_weighted_score'\n"
+    },
+    {
+      "test": "test_keyword_matching (test_runtime_router.TestOverlaySelector.test_keyword_matching)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 156, in test_keyword_matching\n    matches = selector._calculate_keyword_matches(arch_scenario)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'OverlaySelector' object has no attribute '_calculate_keyword_matches'\n"
+    },
+    {
+      "test": "test_priority_based_selection (test_runtime_router.TestOverlaySelector.test_priority_based_selection)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 182, in test_priority_based_selection\n    selected = selector.select_overlay(ambiguous_scenario)\n               ^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'OverlaySelector' object has no attribute 'select_overlay'\n"
+    },
+    {
+      "test": "test_selector_initialization (test_runtime_router.TestOverlaySelector.test_selector_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 140, in test_selector_initialization\n    self.assertEqual(len(selector.overlays), 3)\n                         ^^^^^^^^^^^^^^^^^\nAttributeError: 'OverlaySelector' object has no attribute 'overlays'\n"
+    },
+    {
+      "test": "test_performance_comparison (test_runtime_router.TestPerformanceTracker.test_performance_comparison)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 229, in test_performance_comparison\n    tracker = PerformanceTracker(self.tracker_config)\nTypeError: PerformanceTracker.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_performance_recording (test_runtime_router.TestPerformanceTracker.test_performance_recording)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 211, in test_performance_recording\n    tracker = PerformanceTracker(self.tracker_config)\nTypeError: PerformanceTracker.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_tracker_initialization (test_runtime_router.TestPerformanceTracker.test_tracker_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 202, in test_tracker_initialization\n    tracker = PerformanceTracker(self.tracker_config)\nTypeError: PerformanceTracker.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_underperforming_overlay_detection (test_runtime_router.TestPerformanceTracker.test_underperforming_overlay_detection)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 249, in test_underperforming_overlay_detection\n    tracker = PerformanceTracker(self.tracker_config)\nTypeError: PerformanceTracker.__init__() takes 1 positional argument but 2 were given\n"
+    },
+    {
+      "test": "test_overlay_loading (test_runtime_router.TestRuntimeRouter.test_overlay_loading)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 77, in test_overlay_loading\n    overlays = router.get_available_overlays()\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuntimeRouter' object has no attribute 'get_available_overlays'\n"
+    },
+    {
+      "test": "test_router_initialization (test_runtime_router.TestRuntimeRouter.test_router_initialization)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 67, in test_router_initialization\n    self.assertIsNotNone(router.overlay_selector)\n                         ^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuntimeRouter' object has no attribute 'overlay_selector'\n"
+    },
+    {
+      "test": "test_scenario_based_routing (test_runtime_router.TestRuntimeRouter.test_scenario_based_routing)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 97, in test_scenario_based_routing\n    selected_overlay = router.select_overlay(self.test_scenario)\n                       ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuntimeRouter' object has no attribute 'select_overlay'\n"
+    },
+    {
+      "test": "test_end_to_end_routing (test_runtime_router.TestRuntimeRoutingIntegration.test_end_to_end_routing)",
+      "traceback": "Traceback (most recent call last):\n  File \"c:\\Users\\chris\\resontinex\\Resontinex\\tests\\test_runtime_router.py\", line 339, in test_end_to_end_routing\n    selected_overlay = router.select_overlay(scenario)\n                       ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'RuntimeRouter' object has no attribute 'select_overlay'\n"
+    }
+  ],
+  "system_health": {
+    "scripts_directory": false,
+    "configs_directory": false,
+    "overlay_files": false,
+    "github_workflow": false,
+    "package_yaml": true,
+    "package_json": true,
+    "package_subprocess": true,
+    "package_unittest": true
+  },
+  "configuration_validation": {
+    "eval_scenarios.yaml": "missing",
+    "overlay_params.yaml": "missing",
+    "drift_policy.yaml": "missing",
+    "slo.yaml": "missing",
+    "model_semantics_ledger.v0.1.0.json": "missing"
+  }
+}
