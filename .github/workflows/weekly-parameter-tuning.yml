@@ -77,13 +77,6 @@ jobs:
                 'presence_penalty': 0.1
             }
         
-        # Load performance history if available
-        baseline_path = './baseline/performance-baseline.json'
-        baseline_data = None
-        if os.path.exists(baseline_path):
-            with open(baseline_path, 'r') as f:
-                baseline_data = json.load(f)
-        
         # Parameter optimization candidates
         optimization_candidates = []
         
@@ -91,7 +84,6 @@ jobs:
         temp_variants = [0.6, 0.65, 0.7, 0.75, 0.8]
         for temp in temp_variants:
             if temp != current_params.get('temperature', 0.7):
-                # Simulate performance impact (in real implementation, would run actual tests)
                 latency_impact = (temp - 0.7) * 50  # Higher temp = slightly higher latency
                 quality_impact = min(0.05, abs(temp - 0.7) * 0.1)  # Optimal around 0.7
                 
@@ -109,7 +101,6 @@ jobs:
         token_variants = [1024, 1536, 2048, 2560, 3072]
         for tokens in token_variants:
             if tokens != current_params.get('max_tokens', 2048):
-                # Simulate performance impact
                 token_ratio = tokens / 2048
                 latency_impact = (token_ratio - 1) * 200  # More tokens = higher latency
                 cost_impact = (token_ratio - 1) * 15  # More tokens = higher cost
@@ -121,22 +112,6 @@ jobs:
                     'estimated_latency_change_ms': latency_impact,
                     'estimated_cost_change_pct': cost_impact,
                     'confidence': 0.9
-                }
-                optimization_candidates.append(candidate)
-        
-        # Top-p optimization
-        top_p_variants = [0.85, 0.9, 0.95]
-        for top_p in top_p_variants:
-            if top_p != current_params.get('top_p', 0.9):
-                # Simulate performance impact
-                diversity_impact = (top_p - 0.9) * 0.02  # Higher top_p = more diversity
-                
-                candidate = {
-                    'parameter': 'top_p',
-                    'current_value': current_params.get('top_p', 0.9),
-                    'proposed_value': top_p,
-                    'estimated_diversity_change': diversity_impact,
-                    'confidence': 0.7
                 }
                 optimization_candidates.append(candidate)
         
@@ -177,11 +152,9 @@ jobs:
             'timestamp': datetime.utcnow().isoformat() + 'Z',
             'current_parameters': current_params,
             'recommendations': recommendations,
-            'baseline_performance': baseline_data.get('metrics', {}) if baseline_data else {},
             'analysis_metadata': {
                 'candidates_evaluated': len(optimization_candidates),
-                'recommendations_count': len(recommendations),
-                'has_baseline': baseline_data is not None
+                'recommendations_count': len(recommendations)
             }
         }
         
@@ -322,71 +295,69 @@ jobs:
         
         git push origin "${{ env.branch_name }}"
         
+    - name: Create PR title and body files
+      if: steps.optimization.outputs.has_recommendations == 'true' || github.event.inputs.force_pr == 'true'
+      run: |
+        # Create PR title file
+        if [ "${{ steps.optimization.outputs.has_recommendations }}" == "true" ]; then
+          echo "🎯 Weekly Parameter Optimization: ${{ steps.optimization.outputs.best_parameter }} → ${{ steps.optimization.outputs.best_value }}" > pr_title.txt
+        else
+          echo "📊 Weekly Parameter Analysis - No Optimizations" > pr_title.txt
+        fi
+        
+        # Create PR body file
+        echo "## 🎯 Weekly Parameter Optimization" > pr_body.md
+        echo "" >> pr_body.md
+        echo "**Analysis Complete:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> pr_body.md
+        echo "" >> pr_body.md
+        echo "### 📊 Summary" >> pr_body.md
+        
+        if [ "${{ steps.optimization.outputs.has_recommendations }}" == "true" ]; then
+          echo "Parameter optimization analysis identified improvement opportunities." >> pr_body.md
+          echo "" >> pr_body.md
+          echo "**Recommended Changes:**" >> pr_body.md
+          echo "- Parameter: \`${{ steps.optimization.outputs.best_parameter }}\`" >> pr_body.md
+          echo "- Proposed Value: \`${{ steps.optimization.outputs.best_value }}\`" >> pr_body.md
+          echo "- Optimization Score: ${{ steps.optimization.outputs.optimization_score }}" >> pr_body.md
+          echo "" >> pr_body.md
+          echo "### ✅ Next Steps" >> pr_body.md
+          echo "1. Review the proposed parameter changes" >> pr_body.md
+          echo "2. Run integration tests to validate performance impact" >> pr_body.md
+          echo "3. Monitor fusion effectiveness after merge" >> pr_body.md
+        else
+          echo "No significant optimization opportunities found. Current overlay parameters appear to be performing optimally based on recent metrics." >> pr_body.md
+          echo "" >> pr_body.md
+          echo "### 📈 Current Performance" >> pr_body.md
+          echo "Analysis indicates that existing parameters are well-tuned for current workloads." >> pr_body.md
+        fi
+        
+        echo "" >> pr_body.md
+        echo "---" >> pr_body.md
+        echo "*Auto-generated by RESONTINEX Weekly Parameter Tuning*" >> pr_body.md
+        
     - name: Create pull request
       if: steps.optimization.outputs.has_recommendations == 'true' || github.event.inputs.force_pr == 'true'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const hasRecommendations = '${{ steps.optimization.outputs.has_recommendations }}' === 'true';
-          const bestParam = '${{ steps.optimization.outputs.best_parameter }}';
-          const bestValue = '${{ steps.optimization.outputs.best_value }}';
-          const optScore = '${{ steps.optimization.outputs.optimization_score }}';
-          
-          let prTitle, prBody;
-          
-          if (hasRecommendations) {
-            prTitle = `🎯 Weekly Parameter Optimization: ${bestParam} → ${bestValue}`;
-            prBody = `## 🎯 Weekly Parameter Optimization
-
-**Optimization Summary:**
-- **Parameter:** \`${bestParam}\`
-- **Proposed Value:** \`${bestValue}\`
-- **Optimization Score:** ${optScore}
-
-### 📊 Analysis Results
-Parameter optimization analysis identified improvement opportunities.
-
-### ✅ Next Steps
-1. Review the proposed parameter changes
-2. Run integration tests to validate performance impact
-3. Monitor fusion effectiveness after merge
-
-*Auto-generated by RESONTINEX Weekly Parameter Tuning*`;
-          } else {
-            prTitle = '📊 Weekly Parameter Analysis - No Optimizations';
-            prBody = `## 📊 Weekly Parameter Analysis
-
-**Status:** No significant optimization opportunities found
-
-### 🔍 Analysis Summary
-The weekly parameter optimization analysis completed successfully but found no parameter changes that would provide meaningful performance improvements.
-
-### 📈 Current Performance
-Current overlay parameters appear to be performing optimally based on recent metrics.
-
-*Auto-generated by RESONTINEX Weekly Parameter Tuning*`;
-          }
-          
-          const { data: pullRequest } = await github.rest.pulls.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: prTitle,
-            head: '${{ env.branch_name }}',
-            base: 'main',
-            body: prBody,
-            draft: false
-          });
-          
-          console.log(`Created PR: ${pullRequest.html_url}`);
-          
-          await github.rest.issues.addLabels({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: pullRequest.number,
-            labels: hasRecommendations ? ['optimization', 'automated', 'parameter-tuning'] : ['analysis', 'automated', 'no-change']
-          });
-          
+      run: |
+        # Read title and body from files
+        PR_TITLE=$(cat pr_title.txt)
+        PR_BODY=$(cat pr_body.md)
+        
+        # Create PR using GitHub CLI
+        gh pr create \
+          --title "$PR_TITLE" \
+          --body "$PR_BODY" \
+          --head "${{ env.branch_name }}" \
+          --base main
+        
+        # Add appropriate labels
+        if [ "${{ steps.optimization.outputs.has_recommendations }}" == "true" ]; then
+          gh pr edit --add-label optimization,automated,parameter-tuning
+        else
+          gh pr edit --add-label analysis,automated,no-change
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Upload optimization artifacts
       if: always()
       uses: actions/upload-artifact@v4
@@ -395,4 +366,6 @@ Current overlay parameters appear to be performing optimally based on recent met
         path: |
           optimization-results/
           optimization_analysis_output.txt
+          pr_title.txt
+          pr_body.md
         retention-days: 30

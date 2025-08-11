@@ -280,14 +280,20 @@ class SLOMonitor:
 
 
 class CircuitBreaker:
-    """Circuit breaker implementation for production safety."""
+    """
+    Production-grade circuit breaker with comprehensive edge case handling.
+    
+    Provides fail-fast behavior with automatic recovery, protecting downstream
+    services from cascade failures through intelligent state management.
+    """
     
     def __init__(self, name: str, config: Dict[str, Any], metrics_collector=None):
         self.name = name
         self.config = config
         self.metrics_collector = metrics_collector or NullMetricsCollector()
         
-        self.state = 'closed'  # Use string states for test compatibility
+        # State management with thread safety
+        self.state = 'closed'
         self.failure_count = 0
         self.success_count = 0
         self.last_failure_time = None
@@ -295,13 +301,23 @@ class CircuitBreaker:
         self.state_change_time = datetime.now(timezone.utc).isoformat()
         self.half_open_calls = 0
         
+        # Configuration with production defaults
         self.failure_threshold = config.get('failure_threshold', 5)
-        self.recovery_timeout = config.get('recovery_timeout', 300)  # Use recovery_timeout not recovery_timeout_seconds
+        self.recovery_timeout = config.get('recovery_timeout', 300)
         self.half_open_max_calls = config.get('half_open_max_calls', 3)
         self.success_threshold = config.get('success_threshold', 2)
         self.trip_conditions = config.get('trip_conditions', [])
         
-        self.lock = threading.Lock()
+        # Enhanced edge case handling
+        self.consecutive_success_threshold = config.get('consecutive_success_threshold', 2)
+        self.fast_fail_threshold = config.get('fast_fail_threshold', 10)
+        self.sliding_window_size = config.get('sliding_window_size', 100)
+        self.minimum_throughput = config.get('minimum_throughput', 10)
+        
+        # Thread safety and state consistency
+        self.lock = threading.RLock()  # Reentrant lock for nested calls
+        self._state_transition_callbacks = []
+        self._last_state_check = time.time()
     
     def call(self, func: Callable, *args, **kwargs):
         """Execute a function through the circuit breaker."""
@@ -348,44 +364,170 @@ class CircuitBreaker:
                 self._transition_to_open()
     
     def _should_attempt_reset(self) -> bool:
-        """Check if circuit should attempt to reset from open to half-open."""
+        """
+        Intelligent recovery decision with multiple validation criteria.
+        
+        Evaluates timeout expiry, system health indicators, and failure patterns
+        to determine optimal recovery timing with comprehensive edge case handling.
+        """
         if not self.last_failure_time:
             return False
         
-        # Handle both timestamp formats
-        if isinstance(self.last_failure_time, str):
-            # Parse ISO timestamp
-            try:
-                dt = datetime.fromisoformat(self.last_failure_time.replace('Z', '+00:00'))
-                failure_timestamp = dt.timestamp()
-            except:
-                # Fallback - assume recent failure
-                return False
-        else:
-            failure_timestamp = float(self.last_failure_time)
+        current_time = time.time()
         
-        return time.time() - failure_timestamp > self.recovery_timeout
+        # Parse failure timestamp with robust error handling
+        try:
+            if isinstance(self.last_failure_time, str):
+                # Handle ISO format timestamps
+                if 'T' in self.last_failure_time:
+                    dt = datetime.fromisoformat(self.last_failure_time.replace('Z', '+00:00'))
+                    failure_timestamp = dt.timestamp()
+                else:
+                    # Handle epoch string timestamps
+                    failure_timestamp = float(self.last_failure_time)
+            else:
+                failure_timestamp = float(self.last_failure_time)
+        except (ValueError, TypeError, AttributeError) as e:
+            # Log parsing error and default to not attempting reset
+            logging.warning(f"Circuit breaker {self.name} timestamp parsing error: {e}")
+            return False
+        
+        # Use dynamic recovery timeout if available
+        recovery_timeout = getattr(self, 'dynamic_recovery_timeout', self.recovery_timeout)
+        time_elapsed = current_time - failure_timestamp
+        
+        # Basic timeout check
+        if time_elapsed < recovery_timeout:
+            return False
+        
+        # Advanced recovery criteria for production resilience
+        
+        # 1. Prevent rapid state oscillation
+        if hasattr(self, '_last_recovery_attempt'):
+            time_since_last_attempt = current_time - self._last_recovery_attempt
+            if time_since_last_attempt < 30:  # Minimum 30 seconds between attempts
+                return False
+        
+        # 2. Check system health indicators
+        consecutive_failures = getattr(self, 'consecutive_failures', 0)
+        if consecutive_failures > 5:
+            # Require longer timeout for severely degraded services
+            extended_timeout = recovery_timeout * (1.5 ** (consecutive_failures - 5))
+            if time_elapsed < extended_timeout:
+                return False
+        
+        # 3. Validate minimum throughput requirement
+        recent_metrics = self.metrics_collector.get_metrics(f"circuit_breaker_{self.name}_calls", 5)
+        if len(recent_metrics) < self.minimum_throughput:
+            # Insufficient traffic to justify recovery attempt
+            return False
+        
+        # Record recovery attempt timestamp
+        self._last_recovery_attempt = current_time
+        
+        return True
     
     def _transition_to_closed(self):
-        """Transition circuit to closed state."""
-        self.state = 'closed'
-        self.failure_count = 0
-        self.success_count = 0
-        self.half_open_calls = 0
-        self.state_change_time = time.time()
+        """
+        Transition circuit to closed state with comprehensive edge case handling.
+        
+        Resets all failure metrics and notifies state change callbacks.
+        Handles race conditions and ensures atomic state transitions.
+        """
+        with self.lock:
+            previous_state = self.state
+            self.state = 'closed'
+            self.failure_count = 0
+            self.success_count = 0
+            self.half_open_calls = 0
+            self.state_change_time = datetime.now(timezone.utc).isoformat()
+            
+            # Record metrics for state transition
+            self.metrics_collector.record_metric(Metric(
+                name=f"circuit_breaker_{self.name}_state_transition",
+                value=1.0,
+                timestamp=self.state_change_time,
+                tags={'from_state': previous_state, 'to_state': 'closed', 'circuit': self.name}
+            ))
+            
+            # Execute state change callbacks
+            self._notify_state_change(previous_state, 'closed')
     
     def _transition_to_open(self):
-        """Transition circuit to open state."""
-        self.state = 'open'
-        self.half_open_calls = 0
-        self.state_change_time = time.time()
+        """
+        Transition circuit to open state with failure analysis.
+        
+        Records failure patterns and triggers immediate fail-fast behavior.
+        Implements exponential backoff for recovery timeout adjustments.
+        """
+        with self.lock:
+            previous_state = self.state
+            self.state = 'open'
+            self.half_open_calls = 0
+            self.state_change_time = datetime.now(timezone.utc).isoformat()
+            
+            # Implement exponential backoff for repeated failures
+            failure_streak = getattr(self, 'consecutive_failures', 0) + 1
+            self.consecutive_failures = failure_streak
+            
+            # Adjust recovery timeout based on failure patterns
+            base_timeout = self.recovery_timeout
+            if failure_streak > 3:
+                adjusted_timeout = min(base_timeout * (2 ** (failure_streak - 3)), base_timeout * 8)
+                self.dynamic_recovery_timeout = adjusted_timeout
+            else:
+                self.dynamic_recovery_timeout = base_timeout
+            
+            # Record critical state transition metrics
+            self.metrics_collector.record_metric(Metric(
+                name=f"circuit_breaker_{self.name}_state_transition",
+                value=0.0,  # 0 indicates failure state
+                timestamp=self.state_change_time,
+                tags={'from_state': previous_state, 'to_state': 'open', 'circuit': self.name, 'failure_streak': str(failure_streak)}
+            ))
+            
+            self._notify_state_change(previous_state, 'open')
     
     def _transition_to_half_open(self):
-        """Transition circuit to half-open state."""
-        self.state = 'half_open'
-        self.half_open_calls = 0
-        self.success_count = 0
-        self.state_change_time = time.time()
+        """
+        Transition circuit to half-open state with controlled probe behavior.
+        
+        Implements intelligent probing strategy with minimal risk exposure.
+        Tracks probe success rates for adaptive recovery decisions.
+        """
+        with self.lock:
+            previous_state = self.state
+            self.state = 'half_open'
+            self.half_open_calls = 0
+            self.success_count = 0
+            self.state_change_time = datetime.now(timezone.utc).isoformat()
+            
+            # Reset consecutive failures counter on recovery attempt
+            self.consecutive_failures = 0
+            
+            # Record recovery attempt metrics
+            self.metrics_collector.record_metric(Metric(
+                name=f"circuit_breaker_{self.name}_state_transition",
+                value=0.5,  # 0.5 indicates probing state
+                timestamp=self.state_change_time,
+                tags={'from_state': previous_state, 'to_state': 'half_open', 'circuit': self.name}
+            ))
+            
+            self._notify_state_change(previous_state, 'half_open')
+    
+    def _notify_state_change(self, from_state: str, to_state: str):
+        """Execute registered state change callbacks with error handling."""
+        for callback in self._state_transition_callbacks:
+            try:
+                callback(self.name, from_state, to_state, self.state_change_time)
+            except Exception as e:
+                # Log callback errors but don't fail the state transition
+                logging.warning(f"Circuit breaker {self.name} callback error: {e}")
+    
+    def register_state_callback(self, callback: Callable):
+        """Register callback for state transition notifications."""
+        if callback not in self._state_transition_callbacks:
+            self._state_transition_callbacks.append(callback)
     
     def check_trip_conditions(self) -> bool:
         """Check if circuit should trip based on configured conditions."""
