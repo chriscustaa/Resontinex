@@ -26,6 +26,9 @@ class FusionMetrics:
     overlay_load_success: bool = False
     schema_validation_ok: bool = False
     fallback_activations: int = 0
+    overlay_sha: Optional[str] = None
+    ledger_sha: Optional[str] = None
+    overlay_version: Optional[str] = None
     
     
 class FusionResilientLoader:
@@ -50,7 +53,39 @@ class FusionResilientLoader:
             "ENTROPY_FLOOR": "0.30"
         }
         
+        # Initialize provenance tracking
+        self._update_provenance_stamps()
         self._configure_logging()
+
+    def _update_provenance_stamps(self):
+        """Update provenance stamps for overlay and ledger files."""
+        try:
+            # Calculate overlay SHA
+            overlay_files = list(self.config_dir.glob("fusion_overlay.*.txt"))
+            if overlay_files:
+                latest_overlay = max(overlay_files, key=lambda f: f.stat().st_mtime)
+                with open(latest_overlay, 'rb') as f:
+                    overlay_content = f.read()
+                self.metrics.overlay_sha = hashlib.sha256(overlay_content).hexdigest()[:12]
+                
+                # Extract overlay version from content
+                with open(latest_overlay, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                for line in content.split('\n'):
+                    if line.startswith('FUSION_OVERLAY_VERSION='):
+                        self.metrics.overlay_version = line.split('=', 1)[1].strip()
+                        break
+            
+            # Calculate ledger SHA
+            ledger_files = list(self.config_dir.glob("model_semantics_ledger.*.json"))
+            if ledger_files:
+                latest_ledger = max(ledger_files, key=lambda f: f.stat().st_mtime)
+                with open(latest_ledger, 'rb') as f:
+                    ledger_content = f.read()
+                self.metrics.ledger_sha = hashlib.sha256(ledger_content).hexdigest()[:12]
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to update provenance stamps: {e}")
 
     def _configure_logging(self):
         """Configure structured logging for fusion operations."""
@@ -66,10 +101,18 @@ class FusionResilientLoader:
             self.logger.setLevel(logging.INFO)
 
     def _log_with_metrics(self, level: str, message: str, extra_data: Optional[Dict] = None):
-        """Log message with current metrics data."""
+        """Log message with current metrics data including provenance stamps."""
         metrics_data = asdict(self.metrics)
         if extra_data:
             metrics_data.update(extra_data)
+            
+        # Add runtime provenance info for decision logs
+        if 'fusion.decision' in message.lower() or self.metrics.decisions_made > 0:
+            metrics_data.update({
+                'overlay_sha': self.metrics.overlay_sha or 'unknown',
+                'ledger_sha': self.metrics.ledger_sha or 'unknown',
+                'overlay_version': self.metrics.overlay_version or 'unknown'
+            })
         
         getattr(self.logger, level)(message, extra={'metrics': json.dumps(metrics_data)})
 
@@ -212,8 +255,28 @@ class FusionResilientLoader:
         self._log_with_metrics('warning', f"Fusion overlay loaded from embedded fallback in {load_time_ms}ms")
         return overlay_data, "embedded_minimal_fallback"
 
+    def get_effective_config(self) -> Dict[str, Any]:
+        """Get effective configuration for config drift monitoring."""
+        overlay_data, source = self.load_fusion_overlay()
+        
+        return {
+            "overlay_source": source,
+            "overlay_version": overlay_data.get("FUSION_OVERLAY_VERSION", "unknown"),
+            "fusion_mode": overlay_data.get("FUSION_MODE", "baseline_only"),
+            "entropy_target": overlay_data.get("ENTROPY_REDUCTION_TARGET", "0.50"),
+            "trust_floor": overlay_data.get("TRUST_FLOOR", "0.40"),
+            "circuit_breaker_enabled": overlay_data.get("API_CIRCUIT_BREAKER", "true"),
+            "arbitration_timeout": overlay_data.get("ARBITRATION_TIMEOUT_MS", "150"),
+            "voting_power_map": overlay_data.get("VOTING_POWER_MAP", "single:1"),
+            "config_timestamp": datetime.now(timezone.utc).isoformat(),
+            "config_sha": self.metrics.overlay_sha or "unknown",
+            "ledger_sha": self.metrics.ledger_sha or "unknown"
+        }
+
     def get_health_status(self) -> Dict[str, Any]:
         """Get comprehensive health status for monitoring."""
+        effective_config = self.get_effective_config()
+        
         return {
             "status": "healthy" if self.metrics.overlay_load_success and self.metrics.schema_validation_ok else "degraded",
             "overlay_loaded": self.metrics.overlay_load_success,
@@ -223,6 +286,7 @@ class FusionResilientLoader:
             "errors_count": self.metrics.errors_count,
             "last_error_timestamp": self.metrics.last_error_timestamp,
             "fallback_activations": self.metrics.fallback_activations,
+            "effective_config": effective_config,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 

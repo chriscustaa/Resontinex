@@ -12,7 +12,13 @@ from .metrics import (
 )
 from .budget_analysis import analyze_budget_metrics
 from .benchmark import FusionBenchmarkRunner, run_fusion_benchmark
+from .budget_tripwire import BudgetTripwire, get_budget_tripwire, reset_tripwire_instance
 from .performance_comparison import PerformanceComparator, compare_performance
+from .metrics_controller import (
+    MetricsCardinalityController,
+    get_metrics_controller,
+    reset_metrics_controller
+)
 
 __version__ = "0.1.1"
 __all__ = [
@@ -26,6 +32,12 @@ __all__ = [
     "analyze_budget_metrics",
     "FusionBenchmarkRunner",
     "run_fusion_benchmark",
+    "BudgetTripwire",
+    "get_budget_tripwire",
+    "reset_tripwire_instance",
     "PerformanceComparator",
-    "compare_performance"
+    "compare_performance",
+    "MetricsCardinalityController",
+    "get_metrics_controller",
+    "reset_metrics_controller"
 ]
