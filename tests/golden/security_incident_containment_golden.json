@@ -1,0 +1,27 @@
+{
+  "scenario_id": "security_incident_containment",
+  "timestamp": "2025-08-10T09:00:00.000Z",
+  "baseline_output": "This appears to be a serious security incident that requires immediate attention. The anomalous login patterns from Tor exit nodes combined with failed admin account attempts and successful service account logins indicate a potential coordinated attack. The database queries on user_permissions table and log file modifications are particularly concerning. I recommend immediately disabling the compromised service accounts, enabling enhanced monitoring, conducting a thorough forensic analysis, and implementing additional security measures to prevent similar incidents.",
+  "overlay_output": "**CRITICAL SECURITY INCIDENT - IMMEDIATE CONTAINMENT PROTOCOL**\n\n**SEVERITY ASSESSMENT**: HIGH - Active breach indicators with data access confirmed\n\n**IMMEDIATE CONTAINMENT (Execute within 15 minutes):**\n\n**Step 1: Account Isolation**\n- DISABLE all 3 compromised service accounts immediately\n- REVOKE active sessions for affected accounts (service_user_01, service_user_02, service_user_03)\n- BLOCK source IP range 185.220.*.* at firewall level\n- ENABLE emergency access logging for all admin accounts\n\n**Step 2: System Isolation**\n- ISOLATE affected database server from network (maintain forensic access only)\n- SNAPSHOT current system state before any remediation\n- PRESERVE /var/log/auth.log in read-only state for forensic analysis\n- ACTIVATE incident response team notification protocol\n\n**Step 3: Evidence Preservation**\n- CREATE forensic images of:\n  * Database server memory dump\n  * Network traffic logs (last 48 hours)\n  * Authentication logs (complete)\n  * User_permissions table query history\n- DOCUMENT timeline: Similar pattern on 2025-08-07 (previously dismissed)\n- SECURE chain of custody for all digital evidence\n\n**Step 4: Threat Assessment**\n- ANALYZE user_permissions table queries for data exfiltration indicators\n- CORRELATE Tor exit node IPs with known threat intelligence feeds\n- DETERMINE scope: 47 failed admin attempts + 3 successful service logins = coordinated attack\n- ASSESS business impact: Customer data exposure risk = HIGH\n\n**Step 5: Communication Protocol**\n- NOTIFY: CISO, Legal, Compliance teams immediately\n- PREPARE: Customer notification templates (precautionary)\n- DOCUMENT: All containment actions with timestamps\n- SCHEDULE: Emergency incident response meeting within 2 hours\n\n**Step 6: Recovery Preparation**\n- IMPLEMENT: Enhanced monitoring on all admin accounts\n- PREPARE: Clean system restoration procedure\n- VALIDATE: Backup integrity for rapid recovery\n- ESTABLISH: Communication channels for incident team\n\n**NEXT 4 HOURS:**\n- Complete forensic analysis of compromised accounts\n- Determine full scope of data accessed/modified\n- Implement additional security controls\n- Prepare detailed incident report\n\n**ESTIMATED BUSINESS IMPACT**: Service disruption 2-4 hours, potential customer notification required, full forensic investigation needed.\n\n**INCIDENT COMMANDER**: Assign senior security engineer as primary coordinator.",
+  "overlay_output": "**CRITICAL SECURITY INCIDENT - IMMEDIATE CONTAINMENT PROTOCOL**\n\n**SEVERITY ASSESSMENT**: HIGH - Active breach indicators with data access confirmed\n\n**IMMEDIATE CONTAINMENT (Execute within 15 minutes):**\n\n**Step 1: Account Isolation**\n- DISABLE all 3 compromised service accounts immediately\n- REVOKE active sessions for affected accounts\n- BLOCK source IP range 185.220.*.* at firewall level\n- ENABLE emergency access logging for all admin accounts\n\n**Step 2: System Isolation**\n- ISOLATE affected database server from network (maintain forensic access only)\n- SNAPSHOT current system state before any remediation\n- PRESERVE /var/log/auth.log in read-only state for forensic analysis\n- ACTIVATE incident response team notification protocol\n\n**Step 3: Evidence Preservation**\n- CREATE forensic images of database server memory dump, network traffic logs, authentication logs\n- DOCUMENT timeline: Similar pattern on 2025-08-07 (previously dismissed)\n- SECURE chain of custody for all digital evidence\n\n**Step 4: Threat Assessment**\n- ANALYZE user_permissions table queries for data exfiltration indicators\n- CORRELATE Tor exit node IPs with known threat intelligence feeds\n- ASSESS business impact: Customer data exposure risk = HIGH\n\n**Step 5: Communication Protocol**\n- NOTIFY: CISO, Legal, Compliance teams immediately\n- PREPARE: Customer notification templates (precautionary)\n- SCHEDULE: Emergency incident response meeting within 2 hours\n\n**NEXT 4 HOURS**: Complete forensic analysis, determine data scope, implement additional controls, prepare incident report.\n\n**INCIDENT COMMANDER**: Assign senior security engineer as primary coordinator.",
+  "evaluation_scores": {
+    "specificity": 0.93,
+    "operationality": 0.96,
+    "rationale_density": 0.88,
+    "overall_improvement": 0.18
+  },
+  "execution_metrics": {
+    "execution_time_ms": 1680,
+    "baseline_length": 782,
+    "overlay_length": 1847,
+    "length_delta": 1065
+  },
+  "rules_validation": {
+    "contains_specific_steps": true,
+    "includes_rationale": true,
+    "addresses_context": true,
+    "appropriate_length": true,
+    "operational_focus": true
+  },
+  "config_hash": "a8f3b9c2d1e4f7g9"
+}

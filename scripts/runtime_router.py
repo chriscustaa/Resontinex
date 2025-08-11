@@ -285,9 +285,17 @@ class PerformanceTracker:
         self.config = config or {}
         self.stats = {}
         self.thresholds = self.config.get('thresholds', {})
+        self.window_size = self.config.get('window_size', 10)
     
     def record(self, name: str, score: float):
         self.stats.setdefault(name, []).append(score)
+    
+    def record_performance(self, name: str, score: float, latency: float):
+        """Record performance with score and latency."""
+        self.stats.setdefault(name, []).append(score)
+        # Also track latency if needed
+        latency_key = f"{name}_latency"
+        self.stats.setdefault(latency_key, []).append(latency)
     
     def underperforming(self) -> list:
         threshold = self.thresholds.get('performance_threshold', 0.5)
@@ -350,6 +358,7 @@ class RuntimeRouter:
         self.selector = OverlaySelector({"refund": "rollback_first", "state": "state_model_first", "log": "observability_first"})
         self.overlay_selector = self.selector  # Alias for tests
         self.tracker = PerformanceTracker()
+        self.performance_tracker = self.tracker  # Alias for tests
         
         # Load micro-overlays
         self.overlays = self._load_micro_overlays()
@@ -438,6 +447,12 @@ class RuntimeRouter:
         """Select best overlay for scenario (simplified interface)."""
         decision = self.route_scenario(scenario)
         return decision.selected_overlay
+    
+    def get_overlay_content(self, overlay_name: str) -> str:
+        """Get overlay content by name."""
+        if overlay_name in self.overlays:
+            return self.overlays[overlay_name].content
+        return f"Mock overlay content for {overlay_name}"
 
 
 def main():

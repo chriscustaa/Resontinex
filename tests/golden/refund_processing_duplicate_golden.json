@@ -1,0 +1,26 @@
+{
+  "scenario_id": "refund_processing_duplicate",
+  "timestamp": "2025-08-10T09:00:00.000Z",
+  "baseline_output": "Based on the refund request for duplicate charges, I recommend processing a full refund for the duplicate transaction ($299.99) that occurred on 2025-08-01 at 10:16 UTC. The customer has been a loyal subscriber for 18 months with no previous refund requests, which supports their credibility. The duplicate charge appears to be a system processing error given the 1-minute interval between charges using the same payment method. Process the refund through the standard customer service workflow and add a note to the customer's account documenting the duplicate charge incident for future reference.",
+  "overlay_output": "**IMMEDIATE ACTION REQUIRED - REFUND PROCESSING**\n\n**Step 1: Verify Transaction Details**\n- Confirm duplicate charge: $299.99 on 2025-08-01 10:16 UTC (card ending 4521)\n- Cross-reference with original charge: $299.99 on 2025-08-01 10:15 UTC\n- Validate payment gateway logs for processing anomaly\n\n**Step 2: Execute Refund Process**\n- Initiate full refund ($299.99) for transaction ID associated with 10:16 UTC charge\n- Use payment processor's duplicate charge reversal workflow\n- Expected processing time: 3-5 business days to customer's card\n- Generate refund confirmation number for customer communication\n\n**Step 3: Customer Communication**\n- Send immediate acknowledgment email with refund details and timeline\n- Include refund tracking reference and expected resolution date\n- Proactively offer account credit ($25) for inconvenience caused\n\n**Step 4: System Documentation**\n- Log incident in customer service system with tags: [DUPLICATE_CHARGE, RESOLVED, SYSTEM_ERROR]\n- Update customer profile: Risk level = LOW, Loyalty status = MAINTAIN\n- Create internal ticket for payment processing team to investigate root cause\n\n**Step 5: Preventive Measures**\n- Implement duplicate charge detection rule for this customer (30-second window)\n- Schedule follow-up contact in 7 days to confirm refund received\n\n**Expected Outcome**: Customer receives full refund within 5 business days, account standing maintained, system process improved to prevent recurrence.",
+  "evaluation_scores": {
+    "specificity": 0.87,
+    "operationality": 0.92,
+    "rationale_density": 0.83,
+    "overall_improvement": 0.15
+  },
+  "execution_metrics": {
+    "execution_time_ms": 1450,
+    "baseline_length": 627,
+    "overlay_length": 1523,
+    "length_delta": 896
+  },
+  "rules_validation": {
+    "contains_specific_steps": true,
+    "includes_rationale": true,
+    "addresses_context": true,
+    "appropriate_length": true,
+    "operational_focus": true
+  },
+  "config_hash": "a8f3b9c2d1e4f7g9"
+}

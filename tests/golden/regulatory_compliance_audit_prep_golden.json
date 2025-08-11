@@ -1,0 +1,26 @@
+{
+  "scenario_id": "regulatory_compliance_audit_prep",
+  "timestamp": "2025-08-10T09:00:00.000Z",
+  "baseline_output": "For the upcoming GDPR compliance audit scheduled for 2025-08-15, you should prepare a comprehensive checklist covering all data processing activities, third-party processors, and user consent mechanisms. Focus on documenting the 12,847 active EU user accounts, reviewing the 23 identified data processing activities, and ensuring all third-party processor agreements are current. Update privacy policies if needed, review the two previous breach incidents for documentation completeness, and ensure the user consent management system is functioning properly. Prepare evidence of compliance measures and create a timeline for addressing any gaps identified during preparation.",
+  "overlay_output": "**GDPR COMPLIANCE AUDIT PREPARATION - COMPREHENSIVE ACTION PLAN**\n\n**AUDIT DATE**: 2025-08-15 (5 days remaining)\n**SCOPE**: 12,847 EU data subjects, 23 processing activities, 4 third-party processors\n\n**IMMEDIATE PRIORITIES (Complete by 2025-08-12):**\n\n**Phase 1: Data Inventory & Mapping (Day 1-2)**\n- COMPILE complete data inventory for 12,847 active EU accounts\n- MAP data flows for all 23 processing activities with source→processing→storage→deletion lifecycle\n- DOCUMENT legal basis for each processing activity (consent, legitimate interest, contract performance)\n- VERIFY data retention schedules alignment with 2022 retention policies\n- VALIDATE cross-border data transfer mechanisms and adequacy decisions\n\n**Phase 2: Third-Party Processor Compliance (Day 2-3)**\n- AUDIT Data Processing Agreements (DPAs) with all 4 processors:\n  * AWS: Verify current DPA version, data residency controls, security measures\n  * SendGrid: Confirm email processing compliance, data retention limits\n  * Analytics Co: Review data minimization practices, anonymization procedures\n  * Support Platform: Validate ticket data handling, access controls\n- OBTAIN current SOC 2 Type II reports from each processor\n- VERIFY processor breach notification procedures and SLA alignment\n\n**Phase 3: User Rights & Consent Management (Day 3)**\n- TEST user consent management system deployed 2023-11-01:\n  * Verify consent withdrawal mechanisms\n  * Confirm granular consent options functionality\n  * Validate consent records retention and retrieval\n- PREPARE user rights fulfillment procedures:\n  * Data access request workflow\n  * Data portability export mechanisms\n  * Right to erasure implementation\n  * Data rectification processes\n\n**Phase 4: Breach Management Review (Day 4)**\n- COMPILE detailed documentation for 2 previous breach incidents:\n  * Breach 1: Timeline, impact assessment, notification compliance (72-hour rule)\n  * Breach 2: Remediation measures, lessons learned, process improvements\n- VALIDATE current breach response procedures and notification templates\n- DEMONSTRATE continuous monitoring and detection capabilities\n\n**Phase 5: Documentation & Evidence Preparation (Day 4-5)**\n- ORGANIZE audit evidence packages:\n  * Privacy Impact Assessments (PIAs) for high-risk processing\n  * Staff training records on GDPR compliance\n  * Privacy by design implementation examples\n  * Data subject rights fulfillment statistics\n- UPDATE privacy policy (last updated 2024-03-12) if gaps identified\n- PREPARE technical and organizational measures (TOMs) documentation\n\n**AUDIT DAY DELIVERABLES:**\n1. Complete data processing register\n2. Third-party processor compliance matrix\n3. User consent management system demonstration\n4. Breach incident response documentation\n5. Privacy policy compliance analysis\n6. Staff training completion certificates\n7. Technical safeguards implementation evidence\n\n**RISK MITIGATION:**\n- IDENTIFY potential compliance gaps during preparation\n- PREPARE remediation timeline for any identified issues\n- ASSIGN dedicated compliance officer as primary audit contact\n- SCHEDULE legal counsel availability during audit period\n\n**SUCCESS METRICS:**\n- 100% data processing activities documented with legal basis\n- All third-party DPAs current and compliant\n- User consent system demonstrates full GDPR compliance\n- Breach response procedures validated and documented\n- Zero critical compliance findings identified\n\n**POST-AUDIT**: Schedule quarterly compliance reviews and continuous monitoring implementation.",
+  "evaluation_scores": {
+    "specificity": 0.91,
+    "operationality": 0.88,
+    "rationale_density": 0.85,
+    "overall_improvement": 0.16
+  },
+  "execution_metrics": {
+    "execution_time_ms": 1920,
+    "baseline_length": 731,
+    "overlay_length": 2847,
+    "length_delta": 2116
+  },
+  "rules_validation": {
+    "contains_specific_steps": true,
+    "includes_rationale": true,
+    "addresses_context": true,
+    "appropriate_length": true,
+    "operational_focus": true
+  },
+  "config_hash": "a8f3b9c2d1e4f7g9"
+}

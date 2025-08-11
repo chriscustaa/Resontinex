@@ -1,0 +1,74 @@
+# Fusion Overlay Feature Flags Configuration
+# Controls which overlay features are enabled for different scenarios
+
+# Feature flag definitions
+features:
+  # Refund lot processing switch - controls overlay selection strategy
+  refund_lot_switch:
+    description: "Controls overlay selection for refund lot processing scenarios"
+    enabled_overlays:
+      - "rollback_first"
+    fallback_strategy: "baseline_only"
+    rollout_percentage: 100
+    conditions:
+      scenario_types: ["refund_processing", "refund_duplicate"]
+      confidence_threshold: 0.7
+
+  # State model processing feature
+  state_model_first:
+    description: "Prioritize state model overlay for regulatory compliance scenarios"
+    enabled_overlays:
+      - "state_compliance_model"
+      - "regulatory_audit_prep"
+    fallback_strategy: "baseline_only"
+    rollout_percentage: 80
+    conditions:
+      scenario_types: ["regulatory_compliance", "audit_preparation"]
+      confidence_threshold: 0.8
+
+  # Security incident containment overlay
+  security_containment:
+    description: "Enable specialized overlay for security incident scenarios"
+    enabled_overlays:
+      - "incident_response_model"
+    fallback_strategy: "baseline_only"
+    rollout_percentage: 100
+    conditions:
+      scenario_types: ["security_incident"]
+      confidence_threshold: 0.9
+
+# Global feature flag settings
+global:
+  # Default behavior when no specific feature flag matches
+  default_strategy: "baseline_only"
+  
+  # Circuit breaker settings for feature flags
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: 300  # 5 minutes
+    
+  # Metrics collection for feature flag performance
+  metrics:
+    enabled: true
+    track_latency: true
+    track_quality: true
+    track_token_usage: true
+
+# Environment-specific overrides
+environments:
+  development:
+    # More permissive settings for dev
+    global_rollout_percentage: 100
+    circuit_breaker_enabled: false
+    
+  staging:
+    # Conservative settings for staging
+    global_rollout_percentage: 50
+    circuit_breaker_enabled: true
+    
+  production:
+    # Production-ready settings
+    global_rollout_percentage: 100
+    circuit_breaker_enabled: true
+    quality_gate_threshold: 0.8

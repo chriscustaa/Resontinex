@@ -1,0 +1,262 @@
+# Fusion System Monitoring Dashboard Configuration
+# Compatible with Grafana, DataDog, and other monitoring platforms
+
+dashboard:
+  title: "Fusion Optimizer System - Operations Dashboard"
+  description: "Comprehensive monitoring for fusion overlay system performance, quality, and reliability"
+  tags: ["fusion", "ai", "operations", "slo"]
+  refresh: "30s"
+  time_range:
+    from: "now-1h"
+    to: "now"
+
+# Panel definitions organized by functional area
+panels:
+  
+  # System Health Overview
+  - title: "System Health Overview"
+    type: "stat"
+    position: {x: 0, y: 0, w: 24, h: 4}
+    metrics:
+      - name: "fusion.system.health"
+        query: "avg_over_time(fusion_system_health[5m])"
+        unit: "percent"
+        thresholds:
+          - {value: 99, color: "green"}
+          - {value: 95, color: "yellow"} 
+          - {value: 90, color: "red"}
+    
+  # Performance Metrics Row
+  - title: "Execution Latency (P95)"
+    type: "graph"
+    position: {x: 0, y: 4, w: 12, h: 8}
+    metrics:
+      - name: "fusion.execution.latency_ms"
+        query: "histogram_quantile(0.95, fusion_execution_latency_ms_bucket)"
+        unit: "ms"
+        legend: "{{scenario}} - {{overlay}}"
+    alert_rules:
+      - condition: "avg() > 2000"
+        severity: "warning"
+        message: "P95 latency exceeding warning threshold (2s)"
+      - condition: "avg() > 5000" 
+        severity: "critical"
+        message: "P95 latency exceeding critical threshold (5s)"
+
+  - title: "Token Usage Delta"
+    type: "graph"
+    position: {x: 12, y: 4, w: 12, h: 8}
+    metrics:
+      - name: "fusion.tokens.delta_pct"
+        query: "avg_over_time(fusion_tokens_delta_pct[5m])"
+        unit: "percent"
+        legend: "{{scenario}} - {{overlay}}"
+    alert_rules:
+      - condition: "avg() > 12"
+        severity: "warning"
+        message: "Token usage delta exceeding warning threshold (12%)"
+      - condition: "avg() > 25"
+        severity: "critical" 
+        message: "Token usage delta exceeding critical threshold (25%)"
+
+  # Quality Metrics Row
+  - title: "Quality Score Trends"
+    type: "graph"
+    position: {x: 0, y: 12, w: 12, h: 8}
+    metrics:
+      - name: "fusion.quality.score"
+        query: "avg_over_time(fusion_quality_score[10m])"
+        unit: "short"
+        legend: "{{scenario}} - {{overlay}}"
+    alert_rules:
+      - condition: "avg() < 0.8"
+        severity: "warning"
+        message: "Quality score below target (0.8)"
+
+  - title: "Quality Improvement Delta"
+    type: "stat"
+    position: {x: 12, y: 12, w: 12, h: 8}
+    metrics:
+      - name: "fusion.quality.improvement"
+        query: "avg_over_time(fusion_quality_improvement[1h])"
+        unit: "short"
+        thresholds:
+          - {value: 0.1, color: "green"}
+          - {value: 0.05, color: "yellow"}
+          - {value: 0, color: "red"}
+
+  # Feature Flags and Routing Row
+  - title: "Feature Flag Usage"
+    type: "pie"
+    position: {x: 0, y: 20, w: 8, h: 8}
+    metrics:
+      - name: "fusion.routing.overlay_selected"
+        query: "sum by (overlay) (increase(fusion_routing_overlay_selected_total[1h]))"
+        legend: "{{overlay}}"
+
+  - title: "Routing Decisions"
+    type: "table"
+    position: {x: 8, y: 20, w: 8, h: 8}
+    metrics:
+      - name: "fusion.routing.decisions"
+        query: "sum by (scenario, overlay, result) (increase(fusion_routing_overlay_selected_total[1h]))"
+        columns: ["scenario", "overlay", "result", "count"]
+
+  - title: "Circuit Breaker Events"
+    type: "stat"
+    position: {x: 16, y: 20, w: 8, h: 8}
+    metrics:
+      - name: "fusion.circuit_breaker.event"
+        query: "sum(increase(fusion_circuit_breaker_event_total[1h]))"
+        unit: "short"
+        thresholds:
+          - {value: 0, color: "green"}
+          - {value: 5, color: "yellow"}
+          - {value: 20, color: "red"}
+
+  # Budget and Compliance Row
+  - title: "Budget Compliance Status"
+    type: "stat"
+    position: {x: 0, y: 28, w: 12, h: 4}
+    metrics:
+      - name: "fusion.budget.compliance_rate"
+        query: "avg_over_time(fusion_budget_compliance_rate[1h])"
+        unit: "percent"
+        thresholds:
+          - {value: 95, color: "green"}
+          - {value: 85, color: "yellow"}
+          - {value: 75, color: "red"}
+
+  - title: "Budget Violations (24h)"
+    type: "stat"
+    position: {x: 12, y: 28, w: 12, h: 4}
+    metrics:
+      - name: "fusion.budget.violations"
+        query: "sum(increase(fusion_budget_violations_total[24h]))"
+        unit: "short"
+        thresholds:
+          - {value: 0, color: "green"}
+          - {value: 10, color: "yellow"}
+          - {value: 50, color: "red"}
+
+  # Error and Reliability Row
+  - title: "Error Rate by Overlay"
+    type: "graph"
+    position: {x: 0, y: 32, w: 12, h: 8}
+    metrics:
+      - name: "fusion.errors.rate"
+        query: "rate(fusion_errors_total[5m])"
+        unit: "percent"
+        legend: "{{overlay}} - {{error_type}}"
+
+  - title: "Success Rate SLO"
+    type: "gauge"
+    position: {x: 12, y: 32, w: 12, h: 8}
+    metrics:
+      - name: "fusion.slo.success_rate"
+        query: "avg_over_time(fusion_success_rate[1h])"
+        unit: "percent"
+        min: 95
+        max: 100
+        thresholds:
+          - {value: 99.5, color: "green"}
+          - {value: 99, color: "yellow"}
+          - {value: 95, color: "red"}
+
+# Alert definitions
+alerts:
+  - name: "FusionHighLatency"
+    condition: "avg_over_time(histogram_quantile(0.95, fusion_execution_latency_ms_bucket)[5m:]) > 5000"
+    for: "5m"
+    severity: "critical"
+    annotations:
+      summary: "Fusion system experiencing high latency"
+      description: "P95 latency is {{ $value }}ms, exceeding critical threshold"
+      runbook: "docs/operational_runbook.md#high-latency--performance-issues"
+
+  - name: "FusionQualityDegradation"
+    condition: "avg_over_time(fusion_quality_score[10m]) < 0.75"
+    for: "10m" 
+    severity: "high"
+    annotations:
+      summary: "Quality score degradation detected"
+      description: "Average quality score dropped to {{ $value }}"
+      runbook: "docs/operational_runbook.md#quality-degradation"
+
+  - name: "FusionBudgetViolation" 
+    condition: "avg_over_time(fusion_tokens_delta_pct[5m]) > 25"
+    for: "2m"
+    severity: "high"
+    annotations:
+      summary: "Budget threshold exceeded"
+      description: "Token usage delta is {{ $value }}%, exceeding budget limits"
+      runbook: "docs/operational_runbook.md#budget-violations"
+
+  - name: "FusionCircuitBreakerOpen"
+    condition: "increase(fusion_circuit_breaker_event_total{result=\"open\"}[5m]) > 0"
+    for: "1m"
+    severity: "warning"
+    annotations:
+      summary: "Circuit breaker activated"
+      description: "Circuit breaker opened for overlay {{ $labels.overlay }}"
+      runbook: "docs/operational_runbook.md#circuit-breaker-activation"
+
+  - name: "FusionGoldenTestFailure"
+    condition: "increase(fusion_golden_test_failures_total[1h]) > 0"
+    for: "1m"
+    severity: "high"
+    annotations:
+      summary: "Golden test regression detected"
+      description: "{{ $value }} golden tests failed in the last hour"
+      runbook: "docs/operational_runbook.md#golden-test-failures"
+
+# Dashboard variables for dynamic filtering
+variables:
+  - name: "environment"
+    type: "custom"
+    options: ["production", "staging", "development"]
+    default: "production"
+  
+  - name: "scenario_type"
+    type: "query"
+    query: "label_values(fusion_execution_latency_ms, scenario)"
+    default: "all"
+    
+  - name: "overlay"
+    type: "query"  
+    query: "label_values(fusion_execution_latency_ms, overlay)"
+    default: "all"
+
+# SLO definitions
+slos:
+  - name: "fusion_availability"
+    description: "System availability SLO"
+    target: 99.9
+    time_window: "30d"
+    error_budget: 0.1
+    
+  - name: "fusion_latency"
+    description: "P95 latency under 2 seconds"
+    target: 95
+    time_window: "7d"
+    
+  - name: "fusion_quality"
+    description: "Average quality score above 0.85"
+    target: 95
+    time_window: "7d"
+
+# Export settings for different monitoring platforms
+export:
+  grafana:
+    datasource: "prometheus"
+    folder: "fusion-system"
+    uid: "fusion-ops-dashboard"
+    
+  datadog:
+    dashboard_list: "fusion-operations"
+    tags: ["fusion", "ai-system", "production"]
+    
+  custom:
+    format: "json"
+    include_alerts: true
+    include_slos: true

@@ -1,0 +1,105 @@
+# Pre-commit configuration for RESONTINEX Fusion System
+# Ensures code quality and consistency before commits
+
+repos:
+  # Ruff - Fast Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types: [python]
+      - id: ruff-format
+        types: [python]
+
+  # Black - Python code formatter (fallback if ruff format unavailable)
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3
+        types: [python]
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: [-d, '{extends: default, rules: {truthy: disable, line-length: {max: 120}}}']
+        types: [yaml]
+
+  # JSON formatting and validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-json
+        types: [json]
+      - id: pretty-format-json
+        args: [--autofix, --indent=2]
+        types: [json]
+
+  # Python-specific hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^tests/golden/.*\.json$'
+      - id: end-of-file-fixer
+        exclude: '^tests/golden/.*\.json$'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-yaml
+        exclude: '^configs/fusion/.*\.yaml$'  # These may have custom formats
+      - id: debug-statements
+      - id: check-docstring-first
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, --format=custom, --exclude=tests]
+        types: [python]
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--profile=black]
+        types: [python]
+
+  # Fusion-specific validations
+  - repo: local
+    hooks:
+      - id: fusion-config-validation
+        name: Validate Fusion Configurations
+        entry: python
+        args: [scripts/validate-fusion-ci.py, --check-configs]
+        language: python
+        files: '^configs/fusion/.*\.(yaml|json)$'
+        pass_filenames: false
+
+      - id: fusion-schema-validation
+        name: Validate JSON Schemas
+        entry: python
+        args: [-c, "import json; import sys; [json.load(open(f)) for f in sys.argv[1:]]"]
+        language: python
+        files: '\.json$'
+        types: [json]
+
+      - id: fusion-test-validation
+        name: Run Critical Tests
+        entry: python
+        args: [tests/run_all_tests.py, --quick]
+        language: python
+        files: '^(resontinex/|scripts/|tests/).*\.py$'
+        pass_filenames: false
+
+# Global configuration
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [commit]
+
+# Performance and reliability settings
+minimum_pre_commit_version: 3.0.0

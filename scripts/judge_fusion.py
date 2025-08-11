@@ -385,7 +385,8 @@ class RuleBasedValidator:
         std_dev = (sum((score - mean_score) ** 2 for score in values) / len(values)) ** 0.5
         
         outliers = []
-        threshold = 2.0 * std_dev  # 2 standard deviations
+        # Use 1.5 standard deviations as threshold for more sensitive outlier detection
+        threshold = 1.5 * std_dev if std_dev > 0 else 0.1
         
         for i, score in enumerate(values):
             if abs(score - mean_score) > threshold:

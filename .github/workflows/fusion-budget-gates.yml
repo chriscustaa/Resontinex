@@ -1,0 +1,230 @@
+name: Fusion Budget Gates
+# Performance and cost monitoring for fusion optimization system
+# Enforces token delta and latency budgets with soft/hard gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths: 
+      - 'resontinex/**'
+      - 'scripts/**'
+      - 'configs/fusion/**'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scenario_count:
+        description: 'Number of test scenarios to run'
+        required: false
+        default: '5'
+        type: string
+
+env:
+  FUSION_BUDGET_TOKEN_DELTA_WARN: 12  # 12% increase warning threshold
+  FUSION_BUDGET_TOKEN_DELTA_BLOCK: 25 # 25% increase blocking threshold
+  FUSION_BUDGET_LATENCY_WARN: 2000    # 2.0s P95 latency warning (ms)
+  FUSION_BUDGET_LATENCY_BLOCK: 5000   # 5.0s P95 latency blocking (ms)
+
+jobs:
+  budget-validation:
+    name: Cost & Latency Budget Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    outputs:
+      budget-status: ${{ steps.budget-check.outputs.status }}
+      token-delta: ${{ steps.budget-check.outputs.token_delta }}
+      latency-p95: ${{ steps.budget-check.outputs.latency_p95 }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .[dev]
+          
+      - name: Validate fusion configuration
+        run: |
+          python scripts/validate-fusion-ci.py --check-configs
+          
+      - name: Run budget benchmark
+        id: benchmark
+        run: |
+          python -m pytest tests/test_budget_gates.py::test_fusion_budget_compliance \
+            -v --tb=short --json-report --json-report-file=budget_report.json
+            
+      - name: Analyze budget metrics
+        id: budget-check
+        run: |
+          python -m fusion_ops.budget_analysis \
+            --report-file budget_report.json \
+            --token-warn-threshold ${{ env.FUSION_BUDGET_TOKEN_DELTA_WARN }} \
+            --token-block-threshold ${{ env.FUSION_BUDGET_TOKEN_DELTA_BLOCK }} \
+            --latency-warn-threshold ${{ env.FUSION_BUDGET_LATENCY_WARN }} \
+            --latency-block-threshold ${{ env.FUSION_BUDGET_LATENCY_BLOCK }} \
+            --output-format github
+            
+      - name: Upload budget metrics
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: budget-metrics
+          path: |
+            budget_report.json
+            budget_analysis.json
+            budget_summary.md
+          retention-days: 30
+          
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let summary = "Budget analysis completed.";
+            try {
+              summary = fs.readFileSync('budget_summary.md', 'utf8');
+            } catch (e) {
+              console.log('Budget summary not found, using default message');
+            }
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## 💰 Fusion Budget Analysis')
+            );
+            
+            const commentBody = `## 💰 Fusion Budget Analysis
+            
+            ${summary}
+            
+            *This comment is automatically updated on each commit.*`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+
+  budget-enforcement:
+    name: Budget Gate Enforcement
+    needs: budget-validation
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Evaluate budget status
+        run: |
+          STATUS="${{ needs.budget-validation.outputs.budget-status }}"
+          TOKEN_DELTA="${{ needs.budget-validation.outputs.token-delta }}"
+          LATENCY_P95="${{ needs.budget-validation.outputs.latency-p95 }}"
+          
+          echo "Budget Status: $STATUS"
+          echo "Token Delta: $TOKEN_DELTA%"
+          echo "Latency P95: ${LATENCY_P95}ms"
+          
+          case $STATUS in
+            "pass")
+              echo "✅ All budget gates passed"
+              exit 0
+              ;;
+            "warn")
+              echo "⚠️ Budget warning thresholds exceeded"
+              echo "::warning::Fusion budget warning - review performance impact"
+              exit 0
+              ;;
+            "block")
+              echo "❌ Budget blocking thresholds exceeded"
+              echo "::error::Fusion budget exceeded blocking thresholds - pipeline blocked"
+              exit 1
+              ;;
+            "error")
+              echo "🔥 Budget analysis failed"
+              echo "::error::Budget analysis failed - check logs"
+              exit 1
+              ;;
+            *)
+              echo "❓ Unknown budget status: $STATUS"
+              echo "::error::Unknown budget status - assuming failure"
+              exit 1
+              ;;
+          esac
+
+  performance-regression-check:
+    name: Performance Regression Detection
+    needs: budget-validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need base commit for comparison
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .[dev]
+          
+      - name: Run baseline performance test
+        run: |
+          git checkout HEAD~1
+          python scripts/benchmark_fusion.py --output baseline_metrics.json
+          
+      - name: Run current performance test
+        run: |
+          git checkout HEAD
+          python scripts/benchmark_fusion.py --output current_metrics.json
+          
+      - name: Compare performance metrics
+        run: |
+          python scripts/compare_performance.py \
+            --baseline baseline_metrics.json \
+            --current current_metrics.json \
+            --output performance_comparison.md \
+            --format markdown
+            
+      - name: Upload performance comparison
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-comparison
+          path: performance_comparison.md
+          retention-days: 30
+
+# Workflow-level timeout and resource limits
+concurrency:
+  group: fusion-budget-${{ github.ref }}
+  cancel-in-progress: true

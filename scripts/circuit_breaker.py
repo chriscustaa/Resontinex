@@ -333,7 +333,7 @@ class CircuitBreaker:
         with self.lock:
             self.last_success_time = datetime.now(timezone.utc).isoformat()
             
-            if self.state == CircuitState.HALF_OPEN:
+            if self.state == 'half_open':
                 self._transition_to_closed()
             else:
                 self.failure_count = 0
@@ -436,13 +436,13 @@ class CircuitBreakerOpenError(Exception):
 class ProductionSafetyManager:
     """Main production safety management system."""
     
-    def __init__(self, config_dir, state_dir: str = "./build/safety"):
-        # Handle both dict and path inputs
-        if isinstance(config_dir, dict):
-            self.config = config_dir
+    def __init__(self, config_or_dir, state_dir: str = "./build/safety"):
+        # Handle both dict and path inputs for test compatibility
+        if isinstance(config_or_dir, dict):
+            self.config = config_or_dir
             self.config_dir = Path("./configs/fusion")
         else:
-            self.config_dir = Path(config_dir)
+            self.config_dir = Path(config_or_dir)
             self.config = self._load_slo_config()
             
         self.state_dir = Path(state_dir)

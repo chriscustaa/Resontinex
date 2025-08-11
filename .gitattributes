@@ -1,2 +1,90 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Git Attributes Configuration for Fusion System
+# Controls how Git handles different file types for security and consistency
+
+# Text file handling - ensure consistent line endings
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Configuration files - treat as text with specific handling
+*.toml text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.conf text eol=lf
+
+# Security-sensitive files - ensure proper handling and prevent auto-merge
+*.pem binary
+*.key binary
+*.crt binary
+*.p12 binary
+secrets.* binary merge=ours
+.env* text eol=lf merge=ours
+**/secrets/** binary merge=ours
+
+# Golden test files - important for regression testing, prevent auto-merge
+tests/golden/*.json text eol=lf merge=ours diff=json
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.xz binary
+
+# Database files
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Compiled files
+*.pyc binary
+*.pyo binary
+*.so binary
+*.dll binary
+*.exe binary
+
+# Documentation and markup
+*.rst text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.xml text eol=lf
+
+# Version control and CI files
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.github/** text eol=lf
+.pre-commit-config.yaml text eol=lf
+
+# Fusion-specific files
+fusion_ops/** text eol=lf
+config/** text eol=lf merge=ours
+scripts/** text eol=lf
+tests/** text eol=lf
+
+# Language specific attributes
+*.py diff=python
+*.json diff=json
+*.yaml linguist-language=YAML
+*.yml linguist-language=YAML
+
+# Export ignore - files not needed in distribution
+.github/ export-ignore
+tests/ export-ignore
+.pre-commit-config.yaml export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+*.md export-ignore
