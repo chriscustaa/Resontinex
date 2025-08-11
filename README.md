@@ -1,15 +1,85 @@
+# RESONTINEX: Cognitive Continuity Engine
+
+**RESONTINEX** is a modular system for preserving clarity, reducing decision entropy, and aligning trust over time in high-complexity workflows.
+
+It is designed for operators who manage multiple domains, systems, and relationships—especially in AI-enabled environments where context loss, misaligned execution, and fatigue are common failure points.
+
+---
+
+## Why It Exists
+
+Traditional productivity systems fail to scale in high-cognitive environments.  
+Key problems RESONTINEX addresses:
+
+- **Entropy Accumulation**: Context degrades as decisions compound.
+- **Trust Volatility**: No ledger exists to track reliability of agents, tools, or systems over time.
+- **Signal Drift**: Valuable insights often remain abstract and unconverted into artifacts.
+- **Continuity Breaks**: Projects lose coherence across days, weeks, or role changes.
+
+RESONTINEX introduces structured mechanisms to track and correct these failures at the system level.
+
+---
+
+## System Overview
+
+RESONTINEX is composed of five primary modules:
+
+1. **Entropy Compressor**  
+   Reduces mental overhead through context abstraction, routine delegation, and decision caching.
+
+2. **Trust Kernel**  
+   Maintains a dynamic ledger of trust scores across agents, models, tools, and human collaborators.
+
+3. **Gradient Field**  
+   Aligns current effort with long-term objectives by modeling opportunity cost and leverage per task.
+
+4. **Insight Transduction**  
+   Captures key insights in-the-moment and forces conversion into persistent artifacts or decisions.
+
+5. **Continuity Loop**  
+   Detects drift—personal or project-based—and initiates recovery paths based on historical signals.
+
+Each component is designed to operate independently or as a system.
+
+---
+
+## Use Case Preview
+
+An initial use case will demonstrate RESONTINEX applied to:
+
+- Identifying and correcting strategic drift during a multi-week product build  
+- Quantifying trust volatility across human collaborators and AI agents  
+- Extracting latent insights from context logs and converting them into decision trees
+
+## Who This Is For
+
+- Founders managing overlapping personal, technical, and operational demands  
+- AI builders running agent-based orchestration or trust-sensitive workflows  
+- Strategists and operators who need durable mental models under cognitive load  
+
+---
+
+## Roadmap
+
+- Refine module APIs for integration into AI workflows (e.g., CrewAI, AutoGen)
+- Extend Trust Kernel into a live scoring ledger for model reliability
+- Public dashboard prototype with entropy + continuity metrics
+
+---
+
+## Contributing
+
+This is an early release. Feedback, critical review, and test cases are welcome.  
+Reach out via email at chris@custaa.com
+
+
+
 # RESONTINEX Fusion Optimizer System
 
-**Production-Ready AI Model Overlay System with Operational Excellence**
-
-[![Build Status](https://github.com/resontinex/fusion/workflows/CI/badge.svg)](https://github.com/resontinex/fusion/actions)
-[![Budget Gates](https://github.com/resontinex/fusion/workflows/Budget%20Gates/badge.svg)](https://github.com/resontinex/fusion/actions)
-[![Quality Gates](https://img.shields.io/badge/quality%20gates-passing-green.svg)](/.pre-commit-config.yaml)
-[![Operational Readiness](https://img.shields.io/badge/operational%20readiness-99.9%25-brightgreen.svg)](/docs/operational_runbook.md)
 
 > **Feature Enhancement Commit (FEC) v0.1.1** - This release transforms the fusion overlay system from development prototype to production-ready system with comprehensive guardrails, automated quality enforcement, and operational multipliers.
 
-## 🎯 System Overview
+## System Overview
 
 The RESONTINEX Fusion Optimizer System enhances baseline AI models with specialized overlays for improved performance in specific scenarios. Built with reliability guardrails and operational excellence from the ground up.
 
@@ -21,7 +91,7 @@ The RESONTINEX Fusion Optimizer System enhances baseline AI models with speciali
 - ✅ **2-Minute MTTR** - Automated operational runbooks reduce incident response time
 - ✅ **70% Operational Efficiency** - Low-overhead automated guardrails
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -45,7 +115,7 @@ The RESONTINEX Fusion Optimizer System enhances baseline AI models with speciali
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.11+
@@ -87,7 +157,7 @@ metrics.record_fusion_latency(latency_ms=150,
                              result='success')
 ```
 
-## 📊 Monitoring Dashboard
+##  Monitoring Dashboard
 
 ![Fusion System Dashboard](docs/images/fusion-dashboard-v0.1.1.png)
 *Production monitoring dashboard showing real-time performance metrics, SLO compliance, and operational health*
@@ -108,7 +178,7 @@ curl -X POST \
   -d @config/monitoring_dashboard.yaml
 ```
 
-## 🛡️ Reliability Guardrails
+##  Reliability Guardrails
 
 ### 1. Golden Tests Framework
 Prevents 99.5% of regressions with production-representative test scenarios:
@@ -149,7 +219,7 @@ Enforces cost and latency SLAs automatically:
 - **GitHub Integration**: PR commenting and artifact upload
 - **Performance Regression**: Baseline comparison and alerting
 
-## 🎛️ Feature Management
+##  Feature Management
 
 ### Feature Flags Configuration
 Runtime overlay routing with environment overrides:
@@ -170,7 +240,7 @@ Automatic degradation and recovery:
 - **Recovery Timeout**: 300 seconds
 - **Fallback Strategy**: Baseline-only mode
 
-## 📈 Metrics & Observability
+##  Metrics & Observability
 
 ### Metrics Standards
 All metrics follow cardinality controls:
@@ -194,7 +264,7 @@ metrics.record_overlay_selection(scenario, selected_overlay)
 metrics.record_circuit_breaker_event(event_type, overlay)
 ```
 
-## 🚨 Operational Procedures
+##  Operational Procedures
 
 ### Incident Response
 **MTTR Target**: < 2 minutes for P1 incidents
@@ -223,7 +293,7 @@ python -m fusion_ops.benchmark --iterations 1 --verbose
 - **Medium (P3)**: Circuit breaker activation, golden test failures
 - **Low (P4)**: Performance optimization opportunities
 
-## 🔧 Development Workflow
+## Development Workflow
 
 ### Making Changes
 ```bash
@@ -250,54 +320,3 @@ chmod +x scripts/release_v0.1.1.sh
 # Deploy to production
 git push origin v0.1.1
 ```
-
-## 📚 Documentation
-
-- **[Operational Runbook](docs/operational_runbook.md)**: Complete incident response procedures
-- **[Monitoring Dashboard](config/monitoring_dashboard.yaml)**: Grafana dashboard configuration
-- **[Feature Flags Guide](config/overlay_feature_flags.yaml)**: Runtime configuration options
-- **[Security Configuration](.gitattributes)**: Git security and file handling
-- **[Changelog](CHANGELOG.md)**: Complete version history with FEC details
-
-## 🏆 Performance Impact Analysis
-
-| Metric | Before v0.1.1 | After v0.1.1 | Improvement |
-|--------|---------------|--------------|-------------|
-| **Deployment Safety** | Manual testing only | Automated golden tests | 🟢 99.5% regression prevention |
-| **Code Quality** | Ad-hoc review process | Pre-commit gates | 🟢 85% issue prevention |
-| **Performance Monitoring** | Basic logging | Comprehensive metrics | 🟢 360° visibility |
-| **Feature Rollout** | Binary on/off | Gradual rollout with circuit breakers | 🟢 Safe deployment strategy |
-| **Incident Response** | Manual procedures | Automated runbooks | 🟢 15min → 2min MTTR |
-| **Operational Overhead** | High manual effort | Low-overhead automated guardrails | 🟢 70% operational efficiency |
-
-## 🤝 Contributing
-
-1. **Setup Development Environment**: Follow Quick Start installation
-2. **Pre-commit Validation**: All commits must pass quality gates
-3. **Golden Test Coverage**: New scenarios require golden test cases
-4. **Performance Impact**: Changes must not exceed budget thresholds
-5. **Documentation**: Update operational procedures for new features
-
-### Architecture Principles
-- **Functional Minimalism**: Clarity over cleverness
-- **Production-First**: All code assumes live deployment
-- **Automated Quality**: No manual quality gates
-- **Observable Operations**: Comprehensive metrics and alerting
-- **Graceful Degradation**: Circuit breakers and fallback strategies
-
-## 📞 Support & Contact
-
-- **Production Issues**: fusion-oncall@resontinex.com
-- **Development Questions**: fusion-dev@resontinex.com  
-- **Documentation**: [Internal Wiki](https://wiki.resontinex.com/fusion)
-- **Dashboard**: [monitoring.resontinex.com/fusion-slo](https://monitoring.resontinex.com/fusion-slo)
-
----
-
-**System Status**: ✅ Production Ready  
-**Version**: v0.1.1 (Feature Enhancement Commit)  
-**Last Updated**: 2024-01-10  
-**Quality Gates**: ✅ All Passing  
-**Operational Readiness**: 99.9%
-
-*Built with production excellence and operational multipliers for sustainable competitive advantage.*
