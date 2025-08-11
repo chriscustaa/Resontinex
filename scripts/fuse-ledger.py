@@ -446,18 +446,18 @@ def main():
         print("Validating current ledger...")
         current_ledger = builder.load_current_ledger()
         if current_ledger:
-            print("✓ Current ledger loaded successfully")
+            print("[PASS] Current ledger loaded successfully")
             print(f"Schema version: {current_ledger.get('schema_version', 'unknown')}")
             print(f"Generated at: {current_ledger.get('generated_at', 'unknown')}")
         else:
-            print("✗ No current ledger found")
+            print("[FAIL] No current ledger found")
         return
     
     try:
         result = builder.build(force=args.force, dry_run=args.dry_run)
-        print("✓ Ledger build completed successfully")
+        print("[PASS] Ledger build completed successfully")
     except Exception as e:
-        print(f"✗ Build failed: {e}")
+        print(f"[FAIL] Build failed: {e}")
         sys.exit(1)
 
 

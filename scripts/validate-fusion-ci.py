@@ -91,9 +91,9 @@ class FusionCIValidator:
                 # Only validate capability profile files
                 if 'capability_profile' in json_file.name or 'ledger' in json_file.name:
                     jsonschema.validate(data, schema)
-                    print(f"✓ Schema validation passed: {json_file.name}")
+                    print(f"[PASS] Schema validation passed: {json_file.name}")
                 else:
-                    print(f"○ Skipped schema validation: {json_file.name}")
+                    print(f"[SKIP] Schema validation: {json_file.name}")
                     
             except jsonschema.ValidationError as e:
                 self.log_error(f"Schema validation failed for {json_file.name}: {e.message}")
@@ -146,7 +146,7 @@ class FusionCIValidator:
                     self.log_error(f"Missing required keys in {overlay_file.name}: {', '.join(missing_keys)}")
                     validation_success = False
                 else:
-                    print(f"✓ Required keys validation passed: {overlay_file.name}")
+                    print(f"[PASS] Required keys validation passed: {overlay_file.name}")
                     
             except Exception as e:
                 self.log_error(f"Error validating overlay file {overlay_file.name}: {e}")
@@ -188,7 +188,7 @@ class FusionCIValidator:
                     self.log_error(f"Missing required fields in {ledger_file.name}: {', '.join(missing_fields)}")
                     validation_success = False
                 else:
-                    print(f"✓ Required fields validation passed: {ledger_file.name}")
+                    print(f"[PASS] Required fields validation passed: {ledger_file.name}")
                     
             except Exception as e:
                 self.log_error(f"Error validating ledger file {ledger_file.name}: {e}")
@@ -234,7 +234,7 @@ class FusionCIValidator:
                 self.log_warning(f"Could not scan {config_file.name} for PII: {e}")
         
         if not pii_found:
-            print("✓ PII security check passed")
+            print("[PASS] PII security check passed")
         
         return not pii_found
 
@@ -334,7 +334,7 @@ class FusionCIValidator:
             except Exception:
                 pass
             
-            print(f"✓ Version validation passed: {current_version}")
+            print(f"[PASS] Version validation passed: {current_version}")
             return True
             
         except Exception as e:
@@ -367,7 +367,7 @@ class FusionCIValidator:
                 if 'RESONTINEX' not in description:
                     self.log_warning(f"Ledger description should include RESONTINEX attribution: {ledger_file.name}")
                 
-                print(f"✓ Provenance validation passed: {ledger_file.name}")
+                print(f"[PASS] Provenance validation passed: {ledger_file.name}")
                     
             except Exception as e:
                 self.log_error(f"Error validating provenance for {ledger_file.name}: {e}")
@@ -390,7 +390,7 @@ class FusionCIValidator:
             ], capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:
-                print("✓ Fuse-ledger validation passed")
+                print("[PASS] Fuse-ledger validation passed")
                 return True
             else:
                 self.log_error(f"Fuse-ledger validation failed: {result.stderr}")
@@ -425,7 +425,7 @@ class FusionCIValidator:
                     validation_success = False
         
         if validation_success:
-            print("✓ Configuration completeness check passed")
+            print("[PASS] Configuration completeness check passed")
         
         return validation_success
 
@@ -463,19 +463,19 @@ class FusionCIValidator:
         print("=" * 50)
         
         if self.validation_errors:
-            print(f"✗ FAILED - {len(self.validation_errors)} errors found:")
+            print(f"[FAIL] {len(self.validation_errors)} errors found:")
             for error in self.validation_errors:
-                print(f"  • {error}")
+                print(f"  - {error}")
         
         if self.validation_warnings:
-            print(f"\n⚠ {len(self.validation_warnings)} warnings:")
+            print(f"\n[WARN] {len(self.validation_warnings)} warnings:")
             for warning in self.validation_warnings:
-                print(f"  • {warning}")
+                print(f"  - {warning}")
         
         if all_passed:
-            print("✓ ALL VALIDATIONS PASSED")
+            print("[PASS] ALL VALIDATIONS PASSED")
         else:
-            print("✗ VALIDATION FAILED - Build should not proceed")
+            print("[FAIL] VALIDATION FAILED - Build should not proceed")
         
         return all_passed
 
@@ -494,7 +494,7 @@ def main():
     
     # Check if we should fail on warnings
     if args.fail_on_warnings and validator.validation_warnings:
-        print(f"\n✗ FAILING due to {len(validator.validation_warnings)} warnings (--fail-on-warnings enabled)")
+        print(f"\n[FAIL] FAILING due to {len(validator.validation_warnings)} warnings (--fail-on-warnings enabled)")
         validation_passed = False
     
     return 0 if validation_passed else 1

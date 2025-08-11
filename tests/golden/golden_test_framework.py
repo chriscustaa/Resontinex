@@ -183,7 +183,17 @@ class GoldenTestRunner:
             return self.evaluator.evaluate_responses(scenario, baseline, overlay)
         else:
             # Mock evaluation scores
-            expected_caps = scenario.get('expected_capabilities', {})
+            expected_caps_raw = scenario.get('expected_capabilities', {})
+            
+            # Convert list format to dict format if needed
+            if isinstance(expected_caps_raw, list):
+                expected_caps = {}
+                for item in expected_caps_raw:
+                    if isinstance(item, dict):
+                        expected_caps.update(item)
+            else:
+                expected_caps = expected_caps_raw
+                
             return {
                 'specificity': expected_caps.get('trust_scoring', 0.75),
                 'operationality': expected_caps.get('entropy_control', 0.70),

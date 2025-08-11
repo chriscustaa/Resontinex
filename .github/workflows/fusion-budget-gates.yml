@@ -54,10 +54,12 @@ jobs:
           
       - name: Validate fusion configuration
         run: |
-          python scripts/validate-fusion-ci.py --check-configs
+          python scripts/validate-fusion-ci.py --config-dir ./configs/fusion
           
       - name: Run budget benchmark
         id: benchmark
+        env:
+          PYTEST_SCENARIO_COUNT: ${{ github.event.inputs.scenario_count || '5' }}
         run: |
           python -m pytest tests/test_budget_gates.py::test_fusion_budget_compliance \
             -v --tb=short --json-report --json-report-file=budget_report.json
@@ -130,7 +132,6 @@ jobs:
                 body: commentBody
               });
             }
-
   budget-enforcement:
     name: Budget Gate Enforcement
     needs: budget-validation
@@ -174,7 +175,6 @@ jobs:
               exit 1
               ;;
           esac
-
   performance-regression-check:
     name: Performance Regression Detection
     needs: budget-validation
@@ -214,14 +214,16 @@ jobs:
           python scripts/compare_performance.py \
             --baseline baseline_metrics.json \
             --current current_metrics.json \
-            --output performance_comparison.md \
-            --format markdown
+            --output performance_comparison.json \
+            --markdown-output performance_comparison.md
             
       - name: Upload performance comparison
         uses: actions/upload-artifact@v3
         with:
           name: performance-comparison
-          path: performance_comparison.md
+          path: |
+            performance_comparison.json
+            performance_comparison.md
           retention-days: 30
 
 # Workflow-level timeout and resource limits
