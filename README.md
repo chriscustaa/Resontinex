@@ -1,10 +1,16 @@
-# RESONTINEX
+# RESONTINEX v2.1.0
 
 **Production-grade AI workflow orchestration system with intelligent overlay routing, circuit breaker protection, and comprehensive drift detection.**
 
 RESONTINEX provides enterprise-ready infrastructure for AI-powered workflows requiring high reliability, intelligent routing, and operational resilience.
 
+**Spec Version:** 2.1.0 | **Spec Hash:** `sha256:e7f4a8d3c2b1a90876543210fedcba9876543210abcdef1234567890`
+
 ## Core Components
+
+> **How RESONTINEX Core & Fusion Optimizer Relate**
+>
+> RESONTINEX provides the **core cognitive continuity engine** with modules for trust management, entropy auditing, and insight compression. The **Fusion Optimizer System** is an overlaying operational layer that adds production-grade circuit breaking, drift detection, runtime routing, and comprehensive observability. Together, they form a complete AI workflow orchestration platform with both intelligent decision-making capabilities and enterprise-grade operational resilience.
 
 ### 1. Circuit Breaker System ([`scripts/circuit_breaker.py`](scripts/circuit_breaker.py))
 Production-grade circuit breaker with advanced state transition handling:
@@ -204,6 +210,19 @@ python -m pytest tests/ -v
 - **Comprehensive error handling** with specific exception types
 - **Performance optimization** without sacrificing clarity
 
+## v2.1.0 New Features
+
+### Energy Governance & Quorum Voting
+- **EnergyLedger**: Budget tracking with automatic review at 85% usage and emergency braking at 95%
+- **QuorumVoting**: Weighted consensus decision-making with 4-tier arbitration ladder
+- **Enhanced Security**: Comprehensive threat modeling with PII detection and credential scanning
+- **Cross-Platform CI**: Windows + Ubuntu testing matrix with Python 3.10-3.12 support
+
+### n8n Integration Templates
+- **Production Flow**: [`examples/certi-land-workflow.json`](examples/certi-land-workflow.json) - Full module integration
+- **Simple Starter**: [`examples/n8n-simple-v1.3.json`](examples/n8n-simple-v1.3.json) - Basic routing for learning
+- **60-Second Setup**: Complete import guide in [`examples/README.md`](examples/README.md)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -212,5 +231,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For technical support and integration questions:
 - **Documentation**: Review inline code documentation and type hints
+- **Release Notes**: See [RELEASE_NOTES.md](RELEASE_NOTES.md) for detailed v2.1.0 changes
+- **Governance**: Review [docs/governance.md](docs/governance.md) for contribution guidelines
 - **Issues**: Use GitHub issues for bug reports and feature requests
 - **Contact**: chris@custaa.com for enterprise integration support

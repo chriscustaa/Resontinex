@@ -1,0 +1,229 @@
+{
+  "name": "RESONTINEX Simple Flow v1.3",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "When clicking Test workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "id": "manual-trigger"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "input_text",
+              "value": "Analyze this business scenario for decision-making"
+            },
+            {
+              "name": "scenario_type",
+              "value": "business_analysis"
+            }
+          ],
+          "number": [
+            {
+              "name": "complexity_score",
+              "value": 0.6
+            }
+          ]
+        }
+      },
+      "name": "Input Parser",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "id": "input-parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"complexity_score\"]}}",
+              "operation": "largerEqual",
+              "value2": 0.7
+            }
+          ]
+        }
+      },
+      "name": "Complexity Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "id": "complexity-gate"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "processing_route",
+              "value": "high_complexity"
+            },
+            {
+              "name": "trust_level",
+              "value": "enhanced_validation"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
+      },
+      "name": "High Complexity Route",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        900,
+        200
+      ],
+      "id": "high-complexity"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "processing_route",
+              "value": "standard"
+            },
+            {
+              "name": "trust_level", 
+              "value": "baseline_validation"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
+      },
+      "name": "Standard Route",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        900,
+        400
+      ],
+      "id": "standard-route"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "final_output",
+              "value": "=Scenario processed via {{ $json[\"processing_route\"] }} route with {{ $json[\"trust_level\"] }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $now.toISOString() }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "energy_consumed",
+              "value": "={{ $json[\"complexity_score\"] * 100 }}"
+            }
+          ]
+        },
+        "options": {
+          "includeInput": true
+        }
+      },
+      "name": "Final Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ],
+      "id": "final-output"
+    }
+  ],
+  "connections": {
+    "When clicking Test workflow": {
+      "main": [
+        [
+          {
+            "node": "Input Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Parser": {
+      "main": [
+        [
+          {
+            "node": "Complexity Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complexity Gate": {
+      "main": [
+        [
+          {
+            "node": "High Complexity Route",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Standard Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Complexity Route": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standard Route": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "executionTimeout": 300
+  },
+  "errorWorkflow": {
+    "active": true
+  },
+  "timezone": "America/Chicago",
+  "id": "resontinex-simple-v1-3"
+}

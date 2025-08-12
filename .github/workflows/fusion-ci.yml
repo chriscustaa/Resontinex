@@ -14,9 +14,91 @@ on:
       - '.github/workflows/fusion-ci.yml'
 
 jobs:
-  fusion:
+  validate-pr-governance:
+    name: PR Governance Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Validate PR body contains governance header
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+            
+            // Check for required governance fields
+            const requiredFields = [
+              'spec_version=2.1.0',
+              'Security impact:',
+              'Observability impact:',
+              'Rollback plan:',
+              'Quorum change?'
+            ];
+            
+            const missingFields = requiredFields.filter(field => !prBody.includes(field));
+            
+            if (missingFields.length > 0) {
+              core.setFailed(`PR body missing required governance fields: ${missingFields.join(', ')}`);
+            } else {
+              core.info('✅ PR governance header validation passed');
+            }
+
+  schema-validation:
+    name: Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install schema validation dependencies
+        run: |
+          pip install --upgrade pip
+          pip install jsonschema pyyaml
+      
+      - name: Validate resontinex.json schema
+        run: |
+          echo "::group::Schema Validation"
+          python -c "
+          import json
+          import jsonschema
+          
+          # Load and validate resontinex.json
+          with open('resontinex.json', 'r') as f:
+              spec = json.load(f)
+          
+          # Basic schema validation
+          required_fields = ['engine_name', 'version', 'modules', 'interfaces', 'runtime']
+          missing_fields = [field for field in required_fields if field not in spec]
+          
+          if missing_fields:
+              raise ValueError(f'Missing required fields: {missing_fields}')
+          
+          # Validate version format
+          if not spec['version'].startswith('2.1.'):
+              raise ValueError(f'Invalid version: {spec[\"version\"]}. Must be 2.1.x')
+          
+          # Validate spec hash exists
+          if 'spec_metadata' not in spec or 'spec_hash' not in spec['spec_metadata']:
+              raise ValueError('Missing spec_hash in spec_metadata')
+          
+          print('✅ Schema validation passed')
+          "
+          echo "::endgroup::"
+
+  fusion:
+    name: Fusion Tests
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12']
     
     steps:
       - name: Checkout repository
@@ -24,10 +106,10 @@ jobs:
         with:
           fetch-depth: 2
       
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
           cache: 'pip'
       
       - name: Cache CI validation artifacts
@@ -170,7 +252,7 @@ jobs:
   budget-gates:
     name: Budget Gates Enforcement
     runs-on: ubuntu-latest
-    needs: fusion
+    needs: [fusion, schema-validation]
     if: github.event_name == 'pull_request'
     
     steps:
@@ -272,7 +354,7 @@ jobs:
   performance-regression:
     name: Performance Regression Detection
     runs-on: ubuntu-latest
-    needs: fusion
+    needs: [fusion, schema-validation]
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     
     steps:
@@ -410,7 +492,7 @@ jobs:
   metrics-validation:
     name: Metrics System Validation
     runs-on: ubuntu-latest
-    needs: fusion
+    needs: [fusion, schema-validation]
     
     steps:
     - name: Checkout code
@@ -471,7 +553,7 @@ jobs:
   security-deep-scan:
     name: Deep Security Scan
     runs-on: ubuntu-latest
-    needs: fusion
+    needs: [fusion, schema-validation]
     
     steps:
     - name: Checkout code
