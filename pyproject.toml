@@ -194,3 +194,5 @@ ignore_missing_imports = true
 check_untyped_defs = false
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+[project.entry-points."resontinex.plugins"]
+governance = "resontinex_governance:init"
