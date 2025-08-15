@@ -1,69 +1,69 @@
-# RESONTINEX v2.1.0
+# RESONTINEX
 
 **Production-grade AI workflow orchestration system with intelligent overlay routing, circuit breaker protection, and comprehensive drift detection.**
 
 RESONTINEX provides enterprise-ready infrastructure for AI-powered workflows requiring high reliability, intelligent routing, and operational resilience.
 
-**Spec Version:** 2.1.0 | **Spec Hash:** `sha256:e7f4a8d3c2b1a90876543210fedcba9876543210abcdef1234567890`
-
 ## Core Components
 
-> **How RESONTINEX Core & Fusion Optimizer Relate**
->
-> RESONTINEX provides the **core cognitive continuity engine** with modules for trust management, entropy auditing, and insight compression. The **Fusion Optimizer System** is an overlaying operational layer that adds production-grade circuit breaking, drift detection, runtime routing, and comprehensive observability. Together, they form a complete AI workflow orchestration platform with both intelligent decision-making capabilities and enterprise-grade operational resilience.
-
-### 1. Circuit Breaker System ([`scripts/circuit_breaker.py`](scripts/circuit_breaker.py))
-Production-grade circuit breaker with advanced state transition handling:
-- **Intelligent Recovery**: Exponential backoff with pattern analysis
-- **State Management**: Comprehensive transition logging and metrics
-- **Edge Case Handling**: Race condition protection and timestamp validation
-- **Integration Hooks**: Callback system for external monitoring
-
-### 2. Drift Detection Engine ([`scripts/watch_drift.py`](scripts/watch_drift.py))
-Advanced version drift monitoring with automated response orchestration:
-- **Multi-Source Monitoring**: File system, package registry, and API version tracking
-- **Intelligent Filtering**: Configurable sensitivity with performance-based adaptation
-- **Integration Coordination**: Circuit breaker integration and pipeline hooks
-- **Batch Processing**: Memory-efficient scanning with error recovery
-
-### 3. Scenario Manager ([`resontinex/scenario_manager.py`](resontinex/scenario_manager.py))
-Sophisticated scenario filtering and orchestration engine:
-- **Multi-Criteria Filtering**: Capability, weight, complexity, and custom predicate support
-- **Performance-Based Ranking**: Adaptive filtering with historical performance analysis
-- **Composite Scoring**: Multi-dimensional evaluation with complexity factors
-- **Health Monitoring**: Scenario performance tracking and automatic exclusion
-
-### 4. Runtime Router ([`scripts/runtime_router.py`](scripts/runtime_router.py))
-Intelligent micro-overlay routing with filesystem optimization:
-- **Advanced Loading**: Comprehensive validation with integrity checking and recovery modes
-- **Smart Routing**: Category-based, complexity-aware, and keyword-triggered selection
-- **Performance Tracking**: Route performance analysis with comparative metrics
-- **Error Handling**: Graceful degradation with detailed error logging
+- **Circuit Breaker System** ([`scripts/circuit_breaker.py`](scripts/circuit_breaker.py)): Production-grade circuit breaker with advanced state transition handling.
+- **Drift Detection Engine** ([`scripts/watch_drift.py`](scripts/watch_drift.py)): Advanced version drift monitoring with automated response orchestration.
+- **Scenario Manager** ([`resontinex/scenario_manager.py`](resontinex/scenario_manager.py)): Sophisticated scenario filtering and orchestration engine.
+- **Runtime Router** ([`scripts/runtime_router.py`](scripts/runtime_router.py)): Intelligent micro-overlay routing with filesystem optimization.
 
 ## Quick Start
 
 ### Installation
+
 ```bash
 git clone https://github.com/resontinex/resontinex.git
 cd resontinex
+pip install -r requirements.txt
 pip install -e .
 ```
 
 ### Basic Usage
 
-#### Circuit Breaker Protection
-```python
-from scripts.circuit_breaker import ProductionSafetyManager
+The `rnx` command-line tool provides simple access to core functionality.
 
-# Initialize with configuration
-safety_manager = ProductionSafetyManager("./configs/fusion")
+**Generate a sample configuration:**
 
-# Execute with circuit breaker protection
-def risky_operation():
-    return "success"
-
-result = safety_manager.execute_with_circuit_breaker("service_name", risky_operation)
+```bash
+python scripts/rnx.py sample
 ```
+
+**Validate a configuration file:**
+
+```bash
+python scripts/rnx.py validate --path /path/to/your/config.json
+```
+
+## Configuration
+
+- **Configuration Files**: All configuration is managed in the `configs/` directory.
+- **Environment Variables**: Key settings can be overridden with environment variables (see source for details).
+
+## Development
+
+### Setup
+
+```bash
+# Install development dependencies
+pip install -e .[dev]
+
+# Install pre-commit hooks
+pre-commit install
+```
+
+### Running Tests
+
+```bash
+pytest
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 #### Drift Detection
 ```python
