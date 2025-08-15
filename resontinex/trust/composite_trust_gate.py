@@ -64,36 +64,148 @@ class InputVector:
                 raise ValueError(f"{field_name} must be in [0,1], got {value}")
 
 # ====================================================================
-# 2. ZERO-DEPENDENCY MATHEMATICAL OPERATIONS
+# 2. PRODUCTION-GRADE MATHEMATICAL OPERATIONS (ZERO DEPENDENCIES)
 # ====================================================================
+
+import math
+from threading import Lock
+
+EPSILON = 1e-6
+
+# Configuration validation schema
+CONFIG_SCHEMA = {
+    "weights": {
+        "type": "dict",
+        "required": ["alignment_score", "epistemic_risk", "confidence_band"],
+        "values": {"type": "number", "min": 0, "max": 10}
+    },
+    "risk_tiers": {
+        "type": "dict",
+        "required": ["block", "review", "monitor", "pass"],
+        "values": {"type": "number", "min": 0, "max": 1.1}
+    },
+    "trust_floor": {"type": "number", "min": 0, "max": 1},
+    "entropy_threshold": {"type": "number", "min": 0, "max": 1}
+}
 
 def _sigmoid(x: float) -> float:
     """
-    Dependency-free sigmoid with numerical stability.
-    Guarantees monotonicity and [0,1] output bounds.
+    Production-grade sigmoid with pure Python implementation.
+    Guarantees monotonicity and [0,1] output bounds without external dependencies.
     """
     # Clamp input for numerical stability
     x_clamped = max(-500.0, min(500.0, x))
     
-    # Use numerically stable sigmoid implementation
+    # Numerically stable implementation
     if x_clamped >= 0:
-        exp_neg_x = 2.718281828459045 ** (-x_clamped)  # e^(-x)
-        return 1.0 / (1.0 + exp_neg_x)
+        return 1.0 / (1.0 + math.exp(-x_clamped))
     else:
-        exp_x = 2.718281828459045 ** x_clamped  # e^x
+        exp_x = math.exp(x_clamped)
         return exp_x / (1.0 + exp_x)
 
 def _safe_log(x: float) -> float:
-    """Dependency-free natural logarithm with boundary protection."""
-    import math
-    # Ensure x > 0 for log safety
-    x_safe = max(1e-15, min(1.0 - 1e-15, x))
+    """Production-grade natural logarithm with boundary protection."""
+    # Ensure x > 0 for log safety with epsilon tolerance
+    x_safe = max(EPSILON, min(1.0 - EPSILON, x))
     return math.log(x_safe)
 
 def _logit_transform(p: float) -> float:
-    """Convert probability to logit space with monotonicity guarantees."""
-    p_clamped = max(1e-15, min(1.0 - 1e-15, p))
-    return _safe_log(p_clamped / (1.0 - p_clamped))
+    """Production-grade logit transform with monotonicity guarantees."""
+    p_clamped = max(EPSILON, min(1.0 - EPSILON, p))
+    return math.log(p_clamped / (1.0 - p_clamped))
+
+def _validate_config_schema(config: Dict[str, Any]) -> None:
+    """Production-grade config validation with strict schema enforcement."""
+    for key, schema in CONFIG_SCHEMA.items():
+        if key not in config:
+            raise KeyError(f"Missing required config key: {key}")
+        
+        value = config[key]
+        
+        if schema["type"] == "dict":
+            if not isinstance(value, dict):
+                raise TypeError(f"Config {key} must be dict, got {type(value)}")
+            
+            # Check required keys
+            for req_key in schema["required"]:
+                if req_key not in value:
+                    raise KeyError(f"Missing required key {req_key} in config.{key}")
+            
+            # Validate values
+            value_schema = schema["values"]
+            for k, v in value.items():
+                if value_schema["type"] == "number":
+                    if not isinstance(v, (int, float)):
+                        raise TypeError(f"Config {key}.{k} must be number, got {type(v)}")
+                    if v < value_schema["min"] or v > value_schema["max"]:
+                        raise ValueError(f"Config {key}.{k} must be in [{value_schema['min']}, {value_schema['max']}], got {v}")
+        
+        elif schema["type"] == "number":
+            if not isinstance(value, (int, float)):
+                raise TypeError(f"Config {key} must be number, got {type(value)}")
+            if value < schema["min"] or value > schema["max"]:
+                raise ValueError(f"Config {key} must be in [{schema['min']}, {schema['max']}], got {value}")
+
+def _verify_monotonicity(gate_func: Callable, base_inputs: InputVector, config: Dict) -> bool:
+    """Runtime verification of monotonicity properties."""
+    try:
+        base_score = gate_func(base_inputs, config)
+        
+        # Test alignment monotonicity: increasing alignment should increase trust
+        if base_inputs.alignment_score < 0.9:
+            high_align = InputVector(
+                alignment_score=min(base_inputs.alignment_score + 0.1, 1.0),
+                epistemic_risk=base_inputs.epistemic_risk,
+                confidence_band=base_inputs.confidence_band
+            )
+            high_align_score = gate_func(high_align, config)
+            if high_align_score < base_score - EPSILON:
+                return False
+        
+        # Test risk monotonicity: increasing risk should decrease trust
+        if base_inputs.epistemic_risk < 0.9:
+            high_risk = InputVector(
+                alignment_score=base_inputs.alignment_score,
+                epistemic_risk=min(base_inputs.epistemic_risk + 0.1, 1.0),
+                confidence_band=base_inputs.confidence_band
+            )
+            high_risk_score = gate_func(high_risk, config)
+            if high_risk_score > base_score + EPSILON:
+                return False
+        
+        # Test confidence monotonicity: increasing uncertainty should decrease trust
+        if base_inputs.confidence_band < 0.9:
+            high_conf = InputVector(
+                alignment_score=base_inputs.alignment_score,
+                epistemic_risk=base_inputs.epistemic_risk,
+                confidence_band=min(base_inputs.confidence_band + 0.1, 1.0)
+            )
+            high_conf_score = gate_func(high_conf, config)
+            if high_conf_score > base_score + EPSILON:
+                return False
+        
+        return True
+        
+    except Exception:
+        return False
+
+def _sanitize_log_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
+    """Sanitize log entries to prevent injection attacks."""
+    REDACTED_FIELDS = {"operator_id", "sensitive_token", "api_key", "password"}
+    sanitized = {}
+    
+    for key, value in entry.items():
+        if key in REDACTED_FIELDS:
+            sanitized[key] = "[REDACTED]"
+        elif isinstance(value, str):
+            # Basic sanitization - remove control characters
+            sanitized[key] = ''.join(c for c in value if ord(c) >= 32 or c in '\t\n\r')[:1000]
+        elif isinstance(value, dict):
+            sanitized[key] = _sanitize_log_entry(value)
+        else:
+            sanitized[key] = value
+    
+    return sanitized
 
 def logit_aggregation(weights: Dict[str, float], inputs: InputVector) -> float:
     """
@@ -125,7 +237,7 @@ def logit_aggregation(weights: Dict[str, float], inputs: InputVector) -> float:
 DEFAULT_CONFIG = {
     "weights": {
         "alignment_score": 0.45,
-        "epistemic_risk": 0.35, 
+        "epistemic_risk": 0.35,
         "confidence_band": 0.20
     },
     "risk_tiers": {
@@ -134,6 +246,25 @@ DEFAULT_CONFIG = {
         "monitor": 0.75,
         "pass": 1.01
     },
+    # Enhanced: Externalized policy configuration
+    "policy": {
+        "action_map": {
+            "block": {"decision": "abort", "reason": "high_risk_block", "requires_override": True},
+            "review": {"decision": "review", "reason": "moderate_risk", "requires_override": False},
+            "monitor": {"decision": "execute", "reason": "low_risk_monitored", "requires_override": False},
+            "pass": {"decision": "execute", "reason": "high_trust", "requires_override": False}
+        },
+        "voting_weight_map": [
+            {"min_score": 0.9, "weight": 3},
+            {"min_score": 0.75, "weight": 2},
+            {"min_score": 0.6, "weight": 1},
+            {"min_score": 0.0, "weight": 0}
+        ],
+        "tier_fallbacks": {
+            "undefined": "review"
+        }
+    },
+    # Backward compatibility
     "tier_actions": {
         "block": Decision.ABORT,
         "review": Decision.REVIEW,
@@ -142,6 +273,16 @@ DEFAULT_CONFIG = {
     },
     "trust_floor": 0.60,
     "entropy_threshold": 0.72,
+    # Enhanced: Calibration support
+    "calibration": {
+        "enabled": False,
+        "method": "isotonic",
+        "min_samples": 50
+    },
+    "observability": {
+        "audit_logging": True,
+        "metrics_collection": True
+    },
     "config_version": "1.0.0"
 }
 
@@ -176,6 +317,14 @@ def validate_and_normalize_config(config: Dict[str, Any]) -> Dict[str, Any]:
     tiers = config["risk_tiers"]
     config["risk_tiers"] = dict(sorted(tiers.items(), key=lambda x: x[1]))
     
+    # Ensure policy voting weight map is sorted for deterministic evaluation
+    if "policy" in config and "voting_weight_map" in config["policy"]:
+        config["policy"]["voting_weight_map"] = sorted(
+            config["policy"]["voting_weight_map"],
+            key=lambda x: x["min_score"],
+            reverse=True
+        )
+    
     return config
 
 # ====================================================================
@@ -185,20 +334,22 @@ def validate_and_normalize_config(config: Dict[str, Any]) -> Dict[str, Any]:
 @dataclass(frozen=True, slots=True)
 class CompositeTrustGate:
     """
-    Production-ready composite trust gate with zero dependencies.
+    Production-ready composite trust gate with enhanced policy externalization.
     
     Performance: ~500ns per evaluation (hot path)
     Memory: Minimal footprint via frozen dataclass
     Thread Safety: Stateless, immutable design
+    New Features: Externalized policy, voting weights, calibration support
     """
     inputs: InputVector
     config: Dict[str, Any] = field(default_factory=lambda: copy.deepcopy(DEFAULT_CONFIG))
+    _calibration_model: Optional[Any] = field(repr=False, default=None)
     _raw_score: float = field(init=False, repr=False)
     _rounded_score: float = field(init=False, repr=False)
     _config_hash: str = field(init=False, repr=False)
     
     def __post_init__(self):
-        """Post-initialization with config validation and score calculation."""
+        """Post-initialization with enhanced config validation and score calculation."""
         # Validate and normalize configuration
         validated_config = validate_and_normalize_config(self.config)
         object.__setattr__(self, 'config', validated_config)
@@ -215,11 +366,19 @@ class CompositeTrustGate:
         config_str = json.dumps(validated_config, sort_keys=True)
         config_hash = hashlib.sha256(config_str.encode()).hexdigest()[:12]
         object.__setattr__(self, '_config_hash', config_hash)
+        
+        # Runtime verification of monotonicity properties
+        if not _verify_monotonicity(logit_aggregation, self.inputs, validated_config):
+            raise ValueError("Monotonicity verification failed - mathematical properties violated")
     
     @property
     def trust_score(self) -> float:
-        """Primary trust score (rounded for display consistency)."""
-        return self._rounded_score
+        """Primary trust score, calibrated if possible, rounded for display."""
+        if self._calibration_model is not None:
+            calibrated = self.calibrated_score
+            if calibrated is not None:
+                return round(calibrated, 4)
+        return round(self._raw_score, 4)
     
     @property
     def raw_trust_score(self) -> float:
@@ -227,13 +386,33 @@ class CompositeTrustGate:
         return self._raw_score
     
     @property
+    def calibrated_score(self) -> Optional[float]:
+        """Calibrated score if calibration model is available."""
+        if self._calibration_model is None:
+            return None
+        # Interface for external calibration model
+        try:
+            if hasattr(self._calibration_model, 'predict_proba'):
+                calibrated = self._calibration_model.predict_proba([[self._raw_score]])
+                return float(calibrated[0, 1]) if calibrated.ndim == 2 else float(calibrated[0])
+            elif hasattr(self._calibration_model, 'predict'):
+                return float(self._calibration_model.predict([self._raw_score])[0])
+        except Exception:
+            pass
+        return None
+    
+    @property
     def risk_tier(self) -> RiskTier:
-        """Determine risk tier using raw score for precision."""
-        return RiskTier.from_score(self._raw_score, self.config["risk_tiers"])
+        """Determine risk tier using display score for consistency."""
+        score = self.trust_score
+        for tier_name, threshold in self.config["risk_tiers"].items():
+            if score <= threshold:
+                return RiskTier(tier_name)
+        return RiskTier.PASS
     
     @property
     def decision(self) -> Decision:
-        """Map risk tier to execution decision."""
+        """Map risk tier to execution decision with backward compatibility."""
         tier_actions = self.config.get("tier_actions", {})
         return tier_actions.get(self.risk_tier.value, Decision.REVIEW)
     
@@ -245,7 +424,50 @@ class CompositeTrustGate:
     @property
     def trust_floor_met(self) -> bool:
         """Check if trust score meets minimum threshold."""
-        return self._raw_score >= self.config["trust_floor"]
+        return self.trust_score >= self.config["trust_floor"]
+    
+    def downstream_action(self) -> Dict[str, Any]:
+        """Generate enhanced action from externalized policy configuration."""
+        tier = self.risk_tier.value
+        policy = self.config.get("policy", {})
+        action_map = policy.get("action_map", {})
+        
+        # Get base action from policy or fall back to tier_actions
+        if tier in action_map:
+            base_action = action_map[tier].copy()
+        else:
+            # Fallback to legacy tier_actions
+            decision_value = self.decision.value
+            base_action = {
+                "decision": decision_value,
+                "reason": f"tier_{tier}",
+                "requires_override": tier == "block"
+            }
+        
+        # Enhance with computed values
+        return {
+            **base_action,
+            "tier": tier,
+            "trust_score": self.trust_score,
+            "raw_score": self._raw_score,
+            "calibrated_score": self.calibrated_score,
+            "voting_weight": self._calculate_voting_weight(),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    
+    def _calculate_voting_weight(self) -> int:
+        """Calculate voting weight from the config-driven map."""
+        score = self.trust_score
+        weight_map = self.config.get("policy", {}).get("voting_weight_map", [])
+        
+        # Ensure weight map is sorted by min_score descending
+        sorted_weight_map = sorted(weight_map, key=lambda x: x["min_score"], reverse=True)
+        
+        for item in sorted_weight_map:
+            if score >= item["min_score"]:
+                return item["weight"]
+        
+        return 0  # Default to no voting power if no tier is met
     
     def explain(self) -> Dict[str, Any]:
         """
@@ -410,7 +632,7 @@ class TrustMonitor:
             if not gate.trust_floor_met:
                 self.metrics.increment("trust_gate.trust_floor_violation")
             
-            # Structured logging
+            # Structured logging with injection attack prevention
             self.evaluation_count += 1
             log_entry = {
                 "event": "trust_gate_evaluation",
@@ -430,7 +652,9 @@ class TrustMonitor:
                 }
             }
             
-            self.logger.info(json.dumps(log_entry))
+            # Sanitize log entry to prevent injection attacks
+            sanitized_entry = _sanitize_log_entry(log_entry)
+            self.logger.info(json.dumps(sanitized_entry))
             
             return gate
             
@@ -478,52 +702,56 @@ def route_to_resontinex(decision: Decision) -> str:
 
 class CalibrationAdapter:
     """
-    Adapter for optional model calibration integration.
+    Thread-safe adapter for optional model calibration integration.
     Provides interface for external calibration systems without dependencies.
     """
     
     def __init__(self):
         self.calibration_enabled = False
         self.model_metadata = {}
+        self._lock = Lock()  # Thread safety for concurrent model updates
     
     def fit(self, scores: List[float], labels: List[bool]) -> bool:
         """
-        Interface for calibration model fitting.
+        Thread-safe interface for calibration model fitting.
         Returns True if successful, False if insufficient data.
         """
         if len(scores) < 50:  # Minimum samples for calibration
             return False
-            
-        # Placeholder for external calibration logic
-        # In production, this would interface with calibration service
-        self.calibration_enabled = True
-        self.model_metadata = {
-            "samples": len(scores),
-            "positive_rate": sum(labels) / len(labels),
-            "fitted_at": datetime.now(timezone.utc).isoformat()
-        }
+        
+        with self._lock:
+            # Placeholder for external calibration logic
+            # In production, this would interface with calibration service
+            self.calibration_enabled = True
+            self.model_metadata = {
+                "samples": len(scores),
+                "positive_rate": sum(labels) / len(labels),
+                "fitted_at": datetime.now(timezone.utc).isoformat()
+            }
         return True
     
     def predict(self, raw_score: float) -> Optional[float]:
         """
-        Apply calibration if available.
+        Thread-safe calibration prediction.
         Returns calibrated score or None if calibration unavailable.
         """
-        if not self.calibration_enabled:
-            return None
-            
-        # Placeholder calibration - in production this would call external service
-        # Simple isotonic-like adjustment as example
-        if raw_score < 0.3:
-            return raw_score * 0.8  # Reduce confidence for low scores
-        elif raw_score > 0.7:
-            return min(1.0, raw_score * 1.1)  # Boost confidence for high scores
-        else:
-            return raw_score  # No adjustment for middle range
+        with self._lock:
+            if not self.calibration_enabled:
+                return None
+                
+            # Placeholder calibration - in production this would call external service
+            # Simple isotonic-like adjustment as example
+            if raw_score < 0.3:
+                return raw_score * 0.8  # Reduce confidence for low scores
+            elif raw_score > 0.7:
+                return min(1.0, raw_score * 1.1)  # Boost confidence for high scores
+            else:
+                return raw_score  # No adjustment for middle range
     
     def get_status(self) -> Dict[str, Any]:
-        """Return calibration status for monitoring."""
-        return {
-            "enabled": self.calibration_enabled,
-            "metadata": self.model_metadata
-        }
+        """Return thread-safe calibration status for monitoring."""
+        with self._lock:
+            return {
+                "enabled": self.calibration_enabled,
+                "metadata": self.model_metadata.copy()
+            }
