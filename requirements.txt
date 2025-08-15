@@ -7,8 +7,7 @@ jsonschema>=4.17.0
 # YAML processing for scenarios and config
 PyYAML>=6.0
 
-# Statistical calculations for evaluation
-statistics2>=0.7
+# Statistical calculations for evaluation (using Python's built-in statistics module)
 
 # Date/time utilities
 python-dateutil>=2.8.0
@@ -16,6 +15,7 @@ python-dateutil>=2.8.0
 # Development and testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
+pytest-json-report>=1.5.0
 
 # Optional: Enhanced logging and monitoring
 structlog>=22.3.0

@@ -189,7 +189,7 @@ def set_github_outputs(metrics: Dict[str, float], status: str):
     
     if github_output:
         try:
-            with open(github_output, 'a') as f:
+            with open(github_output, 'a', encoding='utf-8') as f:
                 for key, value in outputs.items():
                     f.write(f"{key}={value}\n")
             print("GitHub Actions outputs set successfully")
@@ -218,12 +218,12 @@ def save_analysis_results(metrics: Dict[str, float], status: str, thresholds: Di
         }
     }
     
-    with open('budget_analysis.json', 'w') as f:
+    with open('budget_analysis.json', 'w', encoding='utf-8') as f:
         json.dump(analysis_data, f, indent=2)
     
     # Save markdown summary
     summary = generate_summary_markdown(metrics, status, thresholds)
-    with open('budget_summary.md', 'w') as f:
+    with open('budget_summary.md', 'w', encoding='utf-8') as f:
         f.write(summary)
     
     print("Analysis results saved to budget_analysis.json and budget_summary.md")

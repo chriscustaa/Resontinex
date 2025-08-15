@@ -67,7 +67,7 @@ jobs:
       - name: Analyze budget metrics
         id: budget-check
         run: |
-          python -m fusion_ops.budget_analysis \
+          python fusion_ops/budget_analysis.py \
             --report-file budget_report.json \
             --token-warn-threshold ${{ env.FUSION_BUDGET_TOKEN_DELTA_WARN }} \
             --token-block-threshold ${{ env.FUSION_BUDGET_TOKEN_DELTA_BLOCK }} \
