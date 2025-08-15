@@ -76,7 +76,7 @@ jobs:
             --output-format github
             
       - name: Upload budget metrics
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: budget-metrics
@@ -218,7 +218,7 @@ jobs:
             --markdown-output performance_comparison.md
             
       - name: Upload performance comparison
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-comparison
           path: |
