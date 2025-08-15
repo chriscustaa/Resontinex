@@ -1,0 +1,64 @@
+# RESONTINEX CompositeTrustGate Configuration - Development Environment
+# Relaxed settings for development and testing
+
+weights:
+  epistemic_risk: 0.30
+  alignment_score: 0.50
+  confidence_band: 0.20
+
+risk_tiers:
+  block: 0.20
+  review: 0.45
+  monitor: 0.70
+  pass: 1.01
+
+tier_fallbacks:
+  undefined: "review"
+  review: "manual"
+  manual: "monitor"  # Less restrictive for development
+
+calibration:
+  enabled: false  # Disabled for faster development iteration
+  method: "isotonic"
+  min_samples: 10  # Lower threshold for testing
+  confidence_threshold: 0.7
+  auto_retrain: false
+
+# RESONTINEX integration parameters
+trust_floor: 0.50  # Lower floor for development
+entropy_threshold: 0.80  # Higher threshold for development
+
+observability:
+  audit_logging: true
+  metrics_collection: true
+  explainability_trace: true
+  performance_monitoring: false  # Disabled for development
+
+# Development deployment settings
+deployment:
+  environment: "development"
+  circuit_breaker:
+    enabled: false
+    failure_threshold: 50
+    recovery_timeout_ms: 5000
+  
+  rate_limiting:
+    enabled: false
+  
+  health_checks:
+    enabled: true
+    endpoint: "/health/trust-gate"
+    interval_seconds: 60
+
+# Security settings (relaxed for development)
+security:
+  pii_validation: true
+  input_sanitization: false
+  output_masking: false
+  audit_retention_days: 7
+
+# Performance tuning (development optimized)
+performance:
+  cache_enabled: false
+  batch_processing: false
+  async_processing: false

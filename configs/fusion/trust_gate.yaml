@@ -1,0 +1,68 @@
+# RESONTINEX CompositeTrustGate Configuration
+# Production-ready configuration with calibration support
+
+weights:
+  epistemic_risk: 0.35
+  alignment_score: 0.45
+  confidence_band: 0.20
+
+risk_tiers:
+  block: 0.25
+  review: 0.50
+  monitor: 0.75
+  pass: 1.01
+
+tier_fallbacks:
+  undefined: "review"
+  review: "manual"
+  manual: "block"
+
+calibration:
+  enabled: true
+  method: "isotonic"  # "isotonic" or "platt"
+  min_samples: 50
+  confidence_threshold: 0.8
+  auto_retrain: true
+  retrain_interval_hours: 24
+
+# RESONTINEX integration parameters
+trust_floor: 0.60
+entropy_threshold: 0.72
+
+observability:
+  audit_logging: true
+  metrics_collection: true
+  explainability_trace: true
+  performance_monitoring: true
+
+# Production deployment settings
+deployment:
+  environment: "production"
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 10
+    recovery_timeout_ms: 30000
+  
+  rate_limiting:
+    enabled: true
+    max_requests_per_second: 1000
+  
+  health_checks:
+    enabled: true
+    endpoint: "/health/trust-gate"
+    interval_seconds: 30
+
+# Security settings
+security:
+  pii_validation: true
+  input_sanitization: true
+  output_masking: false
+  audit_retention_days: 90
+
+# Performance tuning
+performance:
+  cache_enabled: true
+  cache_ttl_seconds: 300
+  batch_processing: true
+  max_batch_size: 100
+  async_processing: true

@@ -1,0 +1,87 @@
+# RESONTINEX CompositeTrustGate Configuration
+# Production-ready trust scoring configuration with operational parameters
+
+# Configuration version for compatibility tracking
+config_version: "1.0.0"
+
+# Input signal weights (must sum to 1.0, auto-normalized if not)
+weights:
+  alignment_score: 0.45      # Weight for alignment/correctness signal
+  epistemic_risk: 0.35       # Weight for epistemic uncertainty signal  
+  confidence_band: 0.20      # Weight for confidence interval width
+
+# Risk tier thresholds (score ranges for decision routing)
+# Tiers are evaluated in ascending order of thresholds
+risk_tiers:
+  block: 0.25     # [0.00, 0.25] → Block/abort execution
+  review: 0.50    # (0.25, 0.50] → Route to human review
+  monitor: 0.75   # (0.50, 0.75] → Execute with monitoring
+  pass: 1.01      # (0.75, 1.01] → Execute without constraints
+
+# Decision routing mappings for each risk tier
+tier_actions:
+  block: "abort"      # ABORT → Block operation with audit trail
+  review: "review"    # REVIEW → Route to human review queue
+  monitor: "execute"  # EXECUTE → Proceed with monitoring
+  pass: "execute"     # EXECUTE → Proceed without constraints
+
+# Trust floor threshold (minimum acceptable trust score)
+trust_floor: 0.60
+
+# Entropy threshold (confidence band threshold for uncertainty flagging)
+entropy_threshold: 0.72
+
+# Observability configuration
+observability:
+  structured_logging: true
+  metrics_collection: true
+  audit_trails: true
+  performance_tracking: true
+
+# Calibration system configuration
+calibration:
+  enabled: false              # Enable calibration model integration
+  min_samples: 50            # Minimum samples required for calibration
+  update_frequency: 3600     # Calibration update frequency (seconds)
+  confidence_threshold: 0.8  # Confidence threshold for calibration
+
+# Performance targets and SLOs
+performance:
+  hot_path_target_ns: 500    # Target execution time (nanoseconds)
+  p99_latency_ms: 1.0        # P99 latency SLO (milliseconds) 
+  memory_footprint_kb: 1     # Memory footprint target (kilobytes)
+  
+# Operational parameters
+operations:
+  shadow_mode: false         # Enable shadow mode for gradual rollout
+  traffic_percentage: 100    # Traffic percentage for A/B testing
+  circuit_breaker_threshold: 0.95  # Error rate threshold for circuit breaker
+  health_check_interval: 30  # Health check interval (seconds)
+
+# Alert thresholds
+alerts:
+  trust_floor_violations_per_hour: 10
+  evaluation_errors_per_hour: 5
+  p99_latency_ms: 2.0
+  memory_usage_mb: 10
+
+# Environment-specific overrides
+# These can be overridden by environment-specific config files
+environment:
+  development:
+    observability:
+      structured_logging: false
+    performance:
+      hot_path_target_ns: 1000
+  
+  staging:
+    operations:
+      shadow_mode: true
+      traffic_percentage: 50
+      
+  production:
+    calibration:
+      enabled: true
+    alerts:
+      trust_floor_violations_per_hour: 5
+      evaluation_errors_per_hour: 2
