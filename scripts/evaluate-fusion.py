@@ -18,7 +18,6 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 import re
 
-
 @dataclass
 class EvaluationResult:
     """Evaluation result for a single scenario run."""
@@ -32,7 +31,6 @@ class EvaluationResult:
     entropy_score: float
     execution_timestamp: str
 
-
 @dataclass
 class ComparisonResult:
     """Comparison between baseline and overlay for a scenario."""
@@ -44,7 +42,6 @@ class ComparisonResult:
     operationality_improvement: float
     overall_improvement: float
     statistical_significance: float
-
 
 class Prompt3Evaluator:
     """Production-grade evaluator implementing Prompt-3 methodology for response quality assessment."""
@@ -170,7 +167,6 @@ class Prompt3Evaluator:
         # Normalize to 0-1 scale (approximate normalization)
         max_entropy = 4.5  # Approximate maximum entropy for English text
         return min(entropy / max_entropy, 1.0)
-
 
 class FusionEvaluator:
     """Main evaluation engine for fusion effectiveness assessment."""
@@ -348,7 +344,7 @@ class FusionEvaluator:
             statistical_significance=statistical_significance
         )
 
-    def generate_reports(self, results: List[ComparisonResult], output_dir: Path):
+    def generate_reports(self, results: List[ComparisonResult], output_dir: Path) -> Tuple[str, str]:
         """Generate CSV and JSON reports from evaluation results."""
         timestamp = datetime.now(timezone.utc).isoformat().replace(':', '-')
         
@@ -360,7 +356,8 @@ class FusionEvaluator:
                 'baseline_rationale_density', 'overlay_rationale_density', 'rationale_density_improvement',
                 'baseline_operationality', 'overlay_operationality', 'operationality_improvement',
                 'overall_improvement', 'statistical_significance', 'baseline_response_time_ms',
-                'overlay_response_time_ms', 'baseline_entropy', 'overlay_entropy'
+                'overlay_response_time_ms', 'baseline_response_length', 'overlay_response_length',
+                'baseline_entropy', 'overlay_entropy'
             ]
             
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -382,6 +379,8 @@ class FusionEvaluator:
                     'statistical_significance': round(result.statistical_significance, 3),
                     'baseline_response_time_ms': result.baseline_result.response_time_ms,
                     'overlay_response_time_ms': result.overlay_result.response_time_ms,
+                    'baseline_response_length': result.baseline_result.response_length,
+                    'overlay_response_length': result.overlay_result.response_length,
                     'baseline_entropy': round(result.baseline_result.entropy_score, 3),
                     'overlay_entropy': round(result.overlay_result.entropy_score, 3)
                 })
@@ -413,7 +412,7 @@ class FusionEvaluator:
         print(f"  CSV: {csv_path}")
         print(f"  JSON: {json_path}")
         
-        return csv_path, json_path
+        return str(csv_path), str(json_path)
 
     def run_evaluation(self, scenarios_path: str, iterations: int = 3) -> List[ComparisonResult]:
         """Run complete fusion effectiveness evaluation."""
@@ -459,7 +458,6 @@ class FusionEvaluator:
         
         return results
 
-
 def main():
     parser = argparse.ArgumentParser(description="RESONTINEX Fusion Effectiveness Check")
     parser.add_argument('--scenarios', required=True, help="Path to scenarios YAML file")
@@ -486,7 +484,6 @@ def main():
         return 1
     
     return 0
-
 
 if __name__ == "__main__":
     exit(main())

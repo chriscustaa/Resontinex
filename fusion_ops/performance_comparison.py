@@ -9,7 +9,6 @@ import argparse
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
-
 class PerformanceComparator:
     """Compares performance metrics between baseline and current runs."""
     
@@ -19,7 +18,7 @@ class PerformanceComparator:
             'latency_p95': 500.0,  # 500ms increase is considered regression
             'quality_improvement': -0.05  # 0.05 decrease is considered regression
         }
-    
+
     def load_results(self, results_file: str) -> Dict[str, Any]:
         """Load performance results from file."""
         try:
@@ -251,12 +250,10 @@ class PerformanceComparator:
         
         return md
 
-
 def compare_performance(baseline_file: str, current_file: str, thresholds: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
     """High-level function to compare performance results."""
     comparator = PerformanceComparator(thresholds)
     return comparator.compare(baseline_file, current_file)
-
 
 def main():
     parser = argparse.ArgumentParser(description='Compare fusion performance results')
@@ -315,6 +312,5 @@ def main():
         print(f"❌ Performance comparison failed: {e}")
         sys.exit(1)
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

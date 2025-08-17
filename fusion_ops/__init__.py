@@ -1,6 +1,6 @@
 """
-Fusion Operations Module
-Utilities for managing fusion overlay system operations
+Fusion Operations module for CI/CD compatibility.
+Legacy compatibility layer for modernized Resontinex architecture.
 """
 
 from .feature_flags import FusionFeatureFlags, get_feature_flags, reset_feature_flags
