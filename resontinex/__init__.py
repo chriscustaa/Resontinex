@@ -13,7 +13,7 @@ __description__ = "Production-grade AI workflow orchestration system with intell
 
 # Core module imports for easy access
 from .scenario_manager import ScenarioManager
-from .fusion_resilience import FusionResilience
+from .fusion_resilience import FusionResilientLoader, FusionSecurityValidator
 
 # Version information for programmatic access
 VERSION_INFO = {

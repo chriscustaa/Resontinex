@@ -1,0 +1,98 @@
+site_name: Resontinex
+site_description: Production-grade AI workflow orchestration system
+site_url: https://resontinex.dev
+repo_url: https://github.com/resontinex/resontinex
+repo_name: resontinex/resontinex
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Overview: index.md
+  - Quickstart:
+      - Installation: quickstart/installation.md
+      - Configuration: quickstart/configuration.md
+      - Golden Scenario: quickstart/golden_scenario.md
+  - Architecture:
+      - System Overview: architecture/overview.md
+      - Component Design: architecture/components.md
+      - Configuration Model: architecture/config.md
+  - Governance:
+      - Energy Budget: governance/energy.md
+      - Quorum Voting: governance/quorum.md
+      - Plugin System: governance/plugins.md
+  - Observability:
+      - Metrics & Monitoring: observability/metrics.md
+      - Grafana Dashboards: observability/dashboards.md
+      - Health Checks: observability/health.md
+  - API Reference:
+      - Runtime API: api/runtime.md
+      - Configuration API: api/config.md
+      - Governance API: api/governance.md
+  - Recipes:
+      - Overlay Rollout: recipes/overlay_rollout.md
+      - SLO Tuning: recipes/slo_tuning.md
+      - Drift Detection: recipes/drift_detection.md
+  - Operations:
+      - Deployment: operations/deployment.md
+      - Troubleshooting: operations/troubleshooting.md
+      - Performance Tuning: operations/performance.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: [examples/, configs/]
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/resontinex/resontinex

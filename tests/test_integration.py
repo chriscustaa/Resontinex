@@ -1,320 +1,267 @@
 #!/usr/bin/env python3
-"""
-Integration tests for the complete fusion optimization system.
-Tests end-to-end workflows across all components.
-"""
+"""Comprehensive integration tests for Resontinex system."""
 
-import unittest
-import sys
-import os
+import pytest
 import json
-import tempfile
-import subprocess
-import yaml
+import time
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-# Add scripts directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
+from resontinex.config import RuntimeConfig
+from resontinex.plugins import load_plugins
+from resontinex.runtime.api import OverlayRouter, ScenarioManager, ProductionSafetyManager
+from resontinex.obs.middleware import measure, record_circuit_trip, record_overlay_fallback, update_trust_score
+from resontinex_governance.energy import EnergyLedger
+from resontinex_governance.quorum import QuorumVoter, MultiStageQuorum, Vote
 
-class TestFusionSystemIntegration(unittest.TestCase):
+class TestRuntimeConfigIntegration:
+    """Test configuration system integration."""
     
-    def setUp(self):
-        """Set up integration test fixtures."""
-        self.temp_dir = tempfile.mkdtemp()
-        self.scripts_dir = os.path.join(os.path.dirname(__file__), '..', 'scripts')
+    def test_config_creation_and_validation(self):
+        """Test basic config creation and validation."""
+        config = RuntimeConfig()
         
-        # Create test scenario configuration
-        self.test_scenario = {
-            "id": "integration_test_01",
-            "description": "End-to-end integration test scenario",
-            "complexity": 3,
-            "expected_capabilities": ["reasoning", "accuracy"],
-            "query": "Design a simple microservice architecture for a todo application",
-            "expected_answer": "A microservice architecture should include API gateway, user service, todo service, and database"
-        }
+        # Verify basic structure
+        assert config.router.strategy in ["auto", "cost", "quality", "failover"]
+        assert config.slo.p95_latency_ms > 0
+        assert config.governance.energy_budget_limit > 0
+        assert config.observability.enable_metrics is True
         
-        # Create test parameters
-        self.test_parameters = {
-            'temperature': 0.7,
-            'top_p': 0.9,
-            'presence_penalty': 0.1,
-            'frequency_penalty': 0.0
-        }
-    
-    def test_script_existence(self):
-        """Test that all required scripts exist."""
-        required_scripts = [
-            'judge_fusion.py',
-            'tune-overlay.py',
-            'watch-drift.py',
-            'runtime_router.py',
-            'circuit_breaker.py'
-        ]
+    def test_config_serialization(self):
+        """Test config can be serialized/deserialized."""
+        config = RuntimeConfig()
+        config_dict = config.dict()
         
-        for script in required_scripts:
-            script_path = os.path.join(self.scripts_dir, script)
-            self.assertTrue(os.path.exists(script_path), f"Script {script} not found")
-    
-    def test_config_files_existence(self):
-        """Test that all required configuration files exist."""
-        config_dir = os.path.join(os.path.dirname(__file__), '..', 'configs', 'fusion')
+        # Verify serialization contains expected keys
+        assert "router" in config_dict
+        assert "slo" in config_dict
+        assert "governance" in config_dict
+        assert "observability" in config_dict
         
-        required_configs = [
-            'eval_scenarios.yaml',
-            'fusion_overlay.v0.3.txt',
-            'overlay_params.yaml',
-            'drift_policy.yaml',
-            'slo.yaml'
-        ]
+        # Verify reconstruction
+        config2 = RuntimeConfig.parse_obj(config_dict)
+        assert config2.router.strategy == config.router.strategy
         
-        for config in required_configs:
-            config_path = os.path.join(config_dir, config)
-            self.assertTrue(os.path.exists(config_path), f"Config {config} not found")
-    
-    def test_micro_overlay_files(self):
-        """Test that micro-overlay files exist and are readable."""
-        overlay_dir = os.path.join(os.path.dirname(__file__), '..', 'configs', 'fusion', 'micro_overlays')
+    def test_production_validation(self):
+        """Test production readiness validation."""
+        config = RuntimeConfig()
+        config.debug_mode = True
+        config.environment = "production"
         
-        required_overlays = [
-            'rollback_first.txt',
-            'state_model_first.txt',
-            'observability_first.txt'
-        ]
-        
-        for overlay in required_overlays:
-            overlay_path = os.path.join(overlay_dir, overlay)
-            self.assertTrue(os.path.exists(overlay_path), f"Overlay {overlay} not found")
-            
-            # Test readability
-            with open(overlay_path, 'r') as f:
-                content = f.read()
-                self.assertGreater(len(content), 0, f"Overlay {overlay} is empty")
-    
-    @patch('subprocess.run')
-    def test_cross_judge_evaluation_workflow(self, mock_subprocess):
-        """Test cross-judge evaluation integration."""
-        # Mock successful script execution
-        mock_subprocess.return_value.returncode = 0
-        mock_subprocess.return_value.stdout = json.dumps({
-            'primary_score': 0.85,
-            'validation_result': {
-                'is_consistent': True,
-                'confidence': 0.88
-            },
-            'final_recommendation': 'overlay'
-        })
-        
-        # Test script execution
-        judge_script = os.path.join(self.scripts_dir, 'judge_fusion.py')
-        if os.path.exists(judge_script):
-            # Simulate running cross-judge evaluation
-            cmd = [sys.executable, judge_script, '--test-mode']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            # Verify script can be executed (even if it fails due to missing dependencies)
-            self.assertIsNotNone(result.returncode)
-    
-    @patch('subprocess.run')
-    def test_parameter_tuning_workflow(self, mock_subprocess):
-        """Test parameter tuning integration."""
-        # Mock successful optimization
-        mock_subprocess.return_value.returncode = 0
-        mock_subprocess.return_value.stdout = json.dumps({
-            'best_parameters': self.test_parameters,
-            'best_score': 0.87,
-            'optimization_history': [
-                {'params': self.test_parameters, 'score': 0.87}
-            ]
-        })
-        
-        # Test script execution
-        tune_script = os.path.join(self.scripts_dir, 'tune-overlay.py')
-        if os.path.exists(tune_script):
-            # Simulate running parameter optimization
-            cmd = [sys.executable, tune_script, '--test-mode']
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            # Verify script can be executed
-            self.assertIsNotNone(result.returncode)
-    
-    def test_configuration_loading_integration(self):
-        """Test loading and parsing of all configuration files."""
-        config_dir = os.path.join(os.path.dirname(__file__), '..', 'configs', 'fusion')
-        
-        # Test YAML configurations
-        yaml_configs = ['eval_scenarios.yaml', 'overlay_params.yaml', 'drift_policy.yaml', 'slo.yaml']
-        
-        for config_file in yaml_configs:
-            config_path = os.path.join(config_dir, config_file)
-            if os.path.exists(config_path):
-                with open(config_path, 'r') as f:
-                    try:
-                        config_data = yaml.safe_load(f)
-                        self.assertIsNotNone(config_data, f"Failed to parse {config_file}")
-                        self.assertIsInstance(config_data, dict, f"{config_file} should contain a dictionary")
-                    except yaml.YAMLError as e:
-                        self.fail(f"Invalid YAML in {config_file}: {e}")
-        
-        # Test JSON configurations
-        json_configs = ['model_semantics_ledger.v0.1.0.json']
-        
-        for config_file in json_configs:
-            config_path = os.path.join(config_dir, config_file)
-            if os.path.exists(config_path):
-                with open(config_path, 'r') as f:
-                    try:
-                        config_data = json.load(f)
-                        self.assertIsNotNone(config_data, f"Failed to parse {config_file}")
-                    except json.JSONDecodeError as e:
-                        self.fail(f"Invalid JSON in {config_file}: {e}")
-    
-    def test_workflow_orchestration(self):
-        """Test orchestration of multiple fusion components."""
-        workflow_steps = [
-            {
-                'name': 'drift_detection',
-                'script': 'watch-drift.py',
-                'expected_output': ['version_changes_detected', 'quality_gates_passed']
-            },
-            {
-                'name': 'parameter_tuning',
-                'script': 'tune-overlay.py',
-                'expected_output': ['best_parameters', 'best_score']
-            },
-            {
-                'name': 'cross_evaluation',
-                'script': 'judge_fusion.py',
-                'expected_output': ['primary_score', 'validation_result']
-            }
-        ]
-        
-        # Test that workflow scripts can be identified and are executable
-        for step in workflow_steps:
-            script_path = os.path.join(self.scripts_dir, step['script'])
-            
-            if os.path.exists(script_path):
-                # Check file permissions (should be readable)
-                self.assertTrue(os.access(script_path, os.R_OK), 
-                              f"Script {step['script']} is not readable")
-                
-                # Check that it's a Python file
-                with open(script_path, 'r') as f:
-                    first_line = f.readline()
-                    self.assertTrue(first_line.startswith('#!'), 
-                                  f"Script {step['script']} missing shebang")
-    
-    def test_github_workflow_configuration(self):
-        """Test GitHub Actions workflow configuration."""
-        workflow_path = os.path.join(
-            os.path.dirname(__file__), 
-            '..', 
-            '.github', 
-            'workflows', 
-            'weekly-parameter-tuning.yml'
-        )
-        
-        if os.path.exists(workflow_path):
-            with open(workflow_path, 'r') as f:
-                try:
-                    workflow_config = yaml.safe_load(f)
-                    
-                    # Verify essential workflow components
-                    self.assertIn('name', workflow_config)
-                    self.assertIn('on', workflow_config)
-                    self.assertIn('jobs', workflow_config)
-                    
-                    # Check for required job steps
-                    if 'jobs' in workflow_config:
-                        for job_name, job_config in workflow_config['jobs'].items():
-                            self.assertIn('steps', job_config, f"Job {job_name} missing steps")
-                            
-                except yaml.YAMLError as e:
-                    self.fail(f"Invalid GitHub workflow YAML: {e}")
-    
-    def test_error_handling_integration(self):
-        """Test error handling across system components."""
-        # Test configuration with invalid values
-        invalid_config = {
-            'temperature': 1.5,  # Invalid (too high)
-            'top_p': -0.1,       # Invalid (negative)
-            'failure_threshold': 'invalid'  # Invalid (not numeric)
-        }
-        
-        # This test verifies that the system handles invalid configurations gracefully
-        # by checking that scripts don't crash immediately on invalid input
-        config_path = os.path.join(self.temp_dir, 'invalid_config.json')
-        with open(config_path, 'w') as f:
-            json.dump(invalid_config, f)
-        
-        # The test passes if we can create the invalid config file
-        # (actual validation happens within individual component tests)
-        self.assertTrue(os.path.exists(config_path))
-    
-    def tearDown(self):
-        """Clean up test fixtures."""
-        import shutil
-        shutil.rmtree(self.temp_dir)
+        issues = config.validate_production_ready()
+        assert len(issues) > 0
+        assert any("debug mode" in issue.lower() for issue in issues)
 
-class TestSystemHealthChecks(unittest.TestCase):
+class TestGovernanceIntegration:
+    """Test governance components integration."""
     
-    def test_python_dependencies(self):
-        """Test that required Python packages are available."""
-        required_packages = [
-            'yaml',
-            'json',
-            'subprocess',
-            'unittest',
-            'tempfile',
-            'os',
-            'sys',
-            'time'
-        ]
+    def test_energy_ledger_workflow(self):
+        """Test complete energy budget workflow."""
+        ledger = EnergyLedger(budget=1000.0, review_threshold=0.8)
         
-        for package in required_packages:
+        # Test normal allocation
+        assert ledger.allocate("tx1", 100.0, {"model": "gpt-4"})
+        assert ledger.available == 900.0
+        assert not ledger.needs_review()
+        
+        # Test large allocation triggering review
+        assert ledger.allocate("tx2", 700.0, {"model": "claude-3"})
+        assert ledger.needs_review()
+        
+        # Test budget exhaustion
+        assert not ledger.allocate("tx3", 300.0)
+        
+        # Test deallocation
+        assert ledger.deallocate("tx1")
+        assert ledger.available == 200.0
+        
+    def test_quorum_decision_workflow(self):
+        """Test complete quorum voting workflow."""
+        voter = QuorumVoter(threshold=0.6, veto_power=True)
+        
+        # Test normal approval
+        votes: list[Vote] = [True, True, True, False, False]  # 60% approval
+        assert voter.decide(votes, "decision-1")
+        
+        # Test veto blocking
+        votes_with_veto: list[Vote] = [True, True, "VETO", False]
+        assert not voter.decide(votes_with_veto, "decision-2")
+        
+        # Test vote summary
+        summary = voter.get_vote_summary(votes)
+        assert summary["approval_ratio"] == 0.6
+        assert summary["total_votes"] == 5
+        assert summary["would_pass"] is True
+        
+    def test_multi_stage_quorum(self):
+        """Test multi-stage governance workflow."""
+        stage1 = QuorumVoter(threshold=0.5)
+        stage2 = QuorumVoter(threshold=0.75)
+        multi_quorum = MultiStageQuorum([stage1, stage2])
+        
+        # Test passing both stages
+        votes_stage1: list[Vote] = [True, True, False]  # 66% - passes stage 1
+        votes_stage2: list[Vote] = [True, True, True, False]  # 75% - passes stage 2
+        assert multi_quorum.decide([votes_stage1, votes_stage2], "multi-decision")
+        
+        # Test failing second stage
+        votes_stage2_fail: list[Vote] = [True, False, False, False]  # 25% - fails stage 2
+        assert not multi_quorum.decide([votes_stage1, votes_stage2_fail], "multi-decision-fail")
+
+class TestObservabilityIntegration:
+    """Test observability system integration."""
+    
+    def test_measurement_context_manager(self):
+        """Test the measurement context manager."""
+        with patch('sys.stdout') as mock_stdout:
+            with measure("test_operation", {"scenario": "integration"}):
+                time.sleep(0.01)  # Small delay to measure
+            
+            # Verify logging output
+            mock_stdout.write.assert_called()
+            call_args = str(mock_stdout.write.call_args)
+            assert "test_operation" in call_args
+            
+    def test_error_handling_in_measurement(self):
+        """Test error handling in measurement context."""
+        with patch('sys.stderr') as mock_stderr:
             try:
-                __import__(package)
-            except ImportError:
-                self.fail(f"Required package {package} not available")
-    
-    def test_directory_structure(self):
-        """Test that the expected directory structure exists."""
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        
-        required_directories = [
-            'scripts',
-            'configs',
-            'configs/fusion',
-            'configs/fusion/micro_overlays',
-            'tests',
-            '.github',
-            '.github/workflows'
-        ]
-        
-        for directory in required_directories:
-            dir_path = os.path.join(base_dir, directory)
-            self.assertTrue(os.path.exists(dir_path), f"Directory {directory} not found")
-            self.assertTrue(os.path.isdir(dir_path), f"{directory} is not a directory")
+                with measure("failing_operation"):
+                    raise ValueError("Test error")
+            except ValueError:
+                pass  # Expected
+            
+            # Verify error logging
+            mock_stderr.write.assert_called()
+            
+    def test_metrics_recording(self):
+        """Test various metrics recording functions."""
+        with patch('builtins.print') as mock_print:
+            record_circuit_trip("test-circuit")
+            record_overlay_fallback("primary", "fallback")
+            update_trust_score("component1", 0.85)
+            
+            # Verify all metrics were recorded
+            assert mock_print.call_count >= 2
 
-if __name__ == '__main__':
-    # Create test results directory
-    os.makedirs('test_results', exist_ok=True)
+class TestPluginSystemIntegration:
+    """Test plugin system integration."""
     
-    # Run tests with detailed output
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(unittest.TestLoader().loadTestsFromModule(sys.modules[__name__]))
+    def test_plugin_loading_without_governance(self):
+        """Test plugin loading when governance is disabled."""
+        config = {"enable_governance": False}
+        
+        with patch('builtins.print') as mock_print:
+            load_plugins(config)
+            # Should print info about no plugins loaded
+            
+    def test_plugin_loading_with_governance(self):
+        """Test plugin loading when governance is enabled."""
+        config = {"enable_governance": True}
+        
+        with patch('builtins.print') as mock_print:
+            load_plugins(config)
+            # Should attempt to load plugins
+
+class TestRuntimeAPIIntegration:
+    """Test runtime API components integration."""
     
-    # Save test results
-    with open('test_results/integration_results.json', 'w') as f:
-        json.dump({
-            'tests_run': result.testsRun,
-            'failures': len(result.failures),
-            'errors': len(result.errors),
-            'success_rate': (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun if result.testsRun > 0 else 0,
-            'test_categories': [
-                'system_integration',
-                'configuration_validation',
-                'workflow_orchestration',
-                'health_checks'
-            ],
-            'system_status': 'healthy' if len(result.failures) == 0 and len(result.errors) == 0 else 'degraded'
-        }, f, indent=2)
+    def test_overlay_router_basic_workflow(self):
+        """Test basic overlay router workflow."""
+        router = OverlayRouter.from_default()
+        manager = ScenarioManager.load("non-existent-path.yaml")  # Graceful handling
+        
+        response = router.route("Test prompt", manager)
+        assert response.text.startswith("ROUTE:")
+        assert "route" in response.meta
+        
+    def test_production_safety_manager(self):
+        """Test production safety manager workflow."""
+        safety = ProductionSafetyManager.from_config("non-existent-config.yaml")
+        
+        def test_operation():
+            return "success"
+        
+        result = safety.execute(test_operation)
+        assert result == "success"
+
+class TestEndToEndWorkflow:
+    """Test complete end-to-end workflows."""
+    
+    def test_golden_scenario_components(self):
+        """Test that all components work together like in golden scenario."""
+        # Initialize configuration
+        config = RuntimeConfig()
+        config.governance.enable_governance = True
+        
+        # Initialize components
+        router = OverlayRouter.from_default()
+        manager = ScenarioManager.load("test-scenario")
+        safety = ProductionSafetyManager.from_config("test-config")
+        
+        # Initialize governance
+        ledger = EnergyLedger(budget=1000.0)
+        voter = QuorumVoter(threshold=0.6)
+        
+        # Execute workflow with measurement
+        with patch('builtins.print'):  # Suppress output during test
+            with measure("end_to_end_test"):
+                # Allocate energy budget
+                assert ledger.allocate("e2e_tx", 50.0, {"operation": "route"})
+                
+                # Execute routing
+                response = safety.execute(lambda: router.route("Test end-to-end", manager))
+                assert response is not None
+                
+                # Record trust score
+                update_trust_score("end_to_end", 0.85)
+                
+                # Make governance decision
+                votes: list[Vote] = [True, True, False]  # 66% approval
+                decision = voter.decide(votes, "e2e_approval")
+                assert decision is True
+                
+                # Clean up
+                ledger.deallocate("e2e_tx")
+
+@pytest.mark.integration
+class TestSystemResilience:
+    """Test system resilience and error handling."""
+    
+    def test_configuration_fallbacks(self):
+        """Test graceful handling of configuration issues."""
+        # Test with missing file - should use defaults
+        try:
+            config = RuntimeConfig.parse_file("non-existent-config.yaml")
+            pytest.fail("Should have raised FileNotFoundError")
+        except FileNotFoundError:
+            # Expected behavior
+            pass
+        
+        # Test with empty config
+        config = RuntimeConfig()
+        assert config.version == "2.1.0"
+        
+    def test_plugin_loading_resilience(self):
+        """Test plugin system handles errors gracefully."""
+        with patch('builtins.print') as mock_print:
+            load_plugins({"enable_governance": True})
+            # Should not crash even if plugins fail to load
+            
+    def test_measurement_with_failures(self):
+        """Test measurement system handles various failure modes."""
+        with patch('builtins.print'):
+            # Test with exception in measured code
+            try:
+                with measure("failing_test"):
+                    raise RuntimeError("Simulated failure")
+            except RuntimeError:
+                pass  # Expected
+            
+            # Test with None metadata
+            with measure("test_with_none", None):
+                pass
+
+if __name__ == "__main__":
+    # Run tests if executed directly
+    pytest.main([__file__, "-v", "--tb=short"])
