@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-08-24T02:37:48.789467Z",
+  "current_parameters": {
+    "temperature": 0.7,
+    "max_tokens": 2048,
+    "top_p": 0.9,
+    "frequency_penalty": 0.1,
+    "presence_penalty": 0.1
+  },
+  "recommendations": [
+    {
+      "parameter": "max_tokens",
+      "current_value": 2048,
+      "proposed_value": 1024,
+      "estimated_latency_change_ms": -100.0,
+      "estimated_cost_change_pct": -7.5,
+      "confidence": 0.9,
+      "optimization_score": 22.5
+    },
+    {
+      "parameter": "max_tokens",
+      "current_value": 2048,
+      "proposed_value": 1536,
+      "estimated_latency_change_ms": -50.0,
+      "estimated_cost_change_pct": -3.75,
+      "confidence": 0.9,
+      "optimization_score": 11.25
+    }
+  ],
+  "analysis_metadata": {
+    "candidates_evaluated": 8,
+    "recommendations_count": 2
+  }
+}

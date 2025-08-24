@@ -1,0 +1,13 @@
+{
+  "max_tokens": 1024,
+  "optimization_history": [
+    {
+      "timestamp": "2025-08-24T02:37:48.789467Z",
+      "parameter": "max_tokens",
+      "previous_value": 2048,
+      "new_value": 1024,
+      "optimization_score": 22.5,
+      "confidence": 0.9
+    }
+  ]
+}
